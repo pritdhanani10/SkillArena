@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "666192930154",
+    "project_id": "skillarena-1eb00",
+    "storage_bucket": "skillarena-1eb00.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:666192930154:android:b70aa1cfc69ce610193113",
+        "android_client_info": {
+          "package_name": "com.example.skillarena"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQsVjTqquA1mOv8-4glxtH4fe5zibQB2M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
