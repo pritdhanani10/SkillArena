@@ -133,7 +133,22 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
     if (response.isEmpty) return;
 
     _responseController.clear();
-    _addUserMessage(response);
+
+    // Score response based on selected category and index
+    final scoreResult = _evaluateResponse(response, _selectedCategoryId ?? 'SWE', _currentQuestionIndex);
+    _totalScore += scoreResult['score'] as int;
+
+    // Add user message with score and feedback
+    setState(() {
+      _chatMessages.add({
+        'isBot': false,
+        'text': response,
+        'time': _getCurrentTime(),
+        'score': scoreResult['score'],
+        'feedback': scoreResult['feedback'],
+      });
+    });
+    _scrollToBottom();
 
     // AI analysis simulation
     setState(() {
@@ -148,17 +163,9 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
       _chatMessages.removeLast();
     });
 
-    // Score response based on selected category and index
-    final scoreResult = _evaluateResponse(response, _selectedCategoryId ?? 'SWE', _currentQuestionIndex);
-    _totalScore += scoreResult['score'] as int;
-
-    // Show score feedback from Bot
-    _addBotMessage("Response Scored: ${scoreResult['score']}/100.\nFeedback: ${scoreResult['feedback']}");
-
     // Proceed to next question or wrap up
     if (_currentQuestionIndex < _questions.length - 1) {
       _currentQuestionIndex++;
-      await Future.delayed(const Duration(milliseconds: 800));
       _addBotMessage(_questions[_currentQuestionIndex]);
     } else {
       setState(() {
@@ -425,15 +432,22 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
                       Flexible(
                         child: Container(
                           padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: isBot ? AppColors.surface : AppColors.primary.withOpacity(0.2),
+                          decoration: AppTheme.glassBox(
+                            color: isBot 
+                                ? AppColors.surface.withOpacity(0.75) 
+                                : AppColors.primary.withOpacity(0.15),
                             borderRadius: BorderRadius.only(
-                              topLeft: const Radius.circular(14),
-                              topRight: const Radius.circular(14),
-                              bottomLeft: Radius.circular(isBot ? 0 : 14),
-                              bottomRight: Radius.circular(isBot ? 14 : 0),
+                              topLeft: const Radius.circular(16),
+                              topRight: const Radius.circular(16),
+                              bottomLeft: Radius.circular(isBot ? 0 : 16),
+                              bottomRight: Radius.circular(isBot ? 16 : 0),
                             ),
-                            border: Border.all(color: isBot ? AppColors.border : AppColors.primary.withOpacity(0.4)),
+                            border: Border.all(
+                              color: isBot 
+                                  ? AppColors.secondary.withOpacity(0.4) 
+                                  : AppColors.primary.withOpacity(0.4),
+                              width: 1.5,
+                            ),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -442,7 +456,70 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
                                 msg['text'],
                                 style: const TextStyle(color: Colors.white, fontSize: 13.5, height: 1.4),
                               ),
-                              const SizedBox(height: 4),
+                              if (!isBot && msg.containsKey('score') && msg['score'] != null) ...[
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: (msg['score'] as int) >= 70 
+                                        ? AppColors.accentGreen.withOpacity(0.12) 
+                                        : (msg['score'] as int) >= 50
+                                            ? AppColors.accentYellow.withOpacity(0.12)
+                                            : AppColors.accentPink.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: (msg['score'] as int) >= 70 
+                                          ? AppColors.accentGreen 
+                                          : (msg['score'] as int) >= 50
+                                              ? AppColors.accentYellow
+                                              : AppColors.accentPink,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        (msg['score'] as int) >= 70 
+                                            ? Icons.check_circle_outline 
+                                            : Icons.error_outline,
+                                        color: (msg['score'] as int) >= 70 
+                                            ? AppColors.accentGreen 
+                                            : (msg['score'] as int) >= 50
+                                                ? AppColors.accentYellow
+                                                : AppColors.accentPink,
+                                        size: 13,
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        "Score: ${msg['score']}/100",
+                                        style: TextStyle(
+                                          fontSize: 11, 
+                                          fontWeight: FontWeight.bold,
+                                          color: (msg['score'] as int) >= 70 
+                                              ? AppColors.accentGreen 
+                                              : (msg['score'] as int) >= 50
+                                                  ? AppColors.accentYellow
+                                                  : AppColors.accentPink,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (msg.containsKey('feedback') && msg['feedback'] != null) ...[
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    "Feedback: ${msg['feedback']}",
+                                    style: const TextStyle(
+                                      color: AppColors.textSecondary, 
+                                      fontSize: 11, 
+                                      fontStyle: FontStyle.italic,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                              const SizedBox(height: 6),
                               Align(
                                 alignment: Alignment.bottomRight,
                                 child: Text(
@@ -529,10 +606,10 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
           else
             // Input field with simulated voice button
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: const BoxDecoration(
-                color: AppColors.surface,
-                border: Border(top: BorderSide(color: AppColors.border)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.surface.withOpacity(0.95),
+                border: const Border(top: BorderSide(color: AppColors.border, width: 1.5)),
               ),
               child: SafeArea(
                 child: Column(
@@ -540,49 +617,84 @@ class _MockInterviewScreenState extends State<MockInterviewScreen> {
                   children: [
                     if (_isListening)
                       Container(
-                        padding: const EdgeInsets.all(8),
-                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(10),
+                        margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                          color: AppColors.secondary.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.accentPink.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.accentPink.withOpacity(0.3)),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.mic, color: AppColors.secondary, size: 16),
-                            SizedBox(width: 8),
+                            const Icon(Icons.mic, color: AppColors.accentPink, size: 16),
+                            const SizedBox(width: 8),
                             Text(
                               "🎙 AI Transcribing Voice Response...",
-                              style: TextStyle(color: AppColors.secondary, fontSize: 12, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: AppColors.accentPink, 
+                                fontSize: 12, 
+                                fontWeight: FontWeight.bold,
+                                shadows: [
+                                  Shadow(
+                                    color: AppColors.accentPink.withOpacity(0.5),
+                                    blurRadius: 8,
+                                  )
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
                     Row(
                       children: [
-                        IconButton(
-                          icon: Icon(
-                            _isListening ? Icons.mic : Icons.mic_none,
-                            color: _isListening ? AppColors.accentPink : AppColors.textSecondary,
+                        // Glowing Mic Button
+                        Container(
+                          decoration: AppTheme.neonGlow(
+                            color: _isListening ? AppColors.accentPink : AppColors.secondary,
+                            blurRadius: 8,
+                            borderRadius: BorderRadius.circular(24),
                           ),
-                          onPressed: _isListening ? null : _simulateSpeechToText,
-                          tooltip: "Simulate speech-to-text response",
-                        ),
-                        Expanded(
-                          child: TextField(
-                            controller: _responseController,
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
-                            decoration: const InputDecoration(
-                              hintText: "Type response here...",
-                              hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 14),
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(horizontal: 8),
+                          child: CircleAvatar(
+                            backgroundColor: _isListening 
+                                ? AppColors.accentPink 
+                                : AppColors.secondary.withOpacity(0.15),
+                            radius: 22,
+                            child: IconButton(
+                              icon: Icon(
+                                _isListening ? Icons.mic : Icons.mic_none,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              onPressed: _isListening ? null : _simulateSpeechToText,
+                              tooltip: "Simulate speech-to-text response",
                             ),
-                            onSubmitted: (_) => _submitResponse(),
                           ),
                         ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceLight.withOpacity(0.6),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: AppColors.border, width: 1.2),
+                            ),
+                            child: TextField(
+                              controller: _responseController,
+                              style: const TextStyle(color: Colors.white, fontSize: 13.5),
+                              decoration: const InputDecoration(
+                                hintText: "Type response here...",
+                                hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 13.5),
+                                border: InputBorder.none,
+                              ),
+                              onSubmitted: (_) => _submitResponse(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         IconButton(
-                          icon: const Icon(Icons.send, color: AppColors.secondary),
+                          icon: const Icon(Icons.send, color: AppColors.secondary, size: 22),
                           onPressed: _submitResponse,
                         ),
                       ],
