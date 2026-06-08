@@ -32,7 +32,7 @@ class DefaultFirebaseOptions {
   // Configurations for project: skillarena-1eb00
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyC0KYPVjzwQgZ9HEF8kWGhcScNW8HgDElg',
+    apiKey: String.fromEnvironment('FIREBASE_WEB_API_KEY', defaultValue: 'PLACEHOLDER_WEB_API_KEY'),
     appId: '1:666192930154:web:c0d2097d1f5af9dc193113',
     messagingSenderId: '666192930154',
     projectId: 'skillarena-1eb00',
@@ -43,7 +43,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCQsVjTqquA1mOv8-4glxtH4fe5zibQB2M',
+    apiKey: String.fromEnvironment('FIREBASE_ANDROID_API_KEY', defaultValue: 'PLACEHOLDER_ANDROID_API_KEY'),
     appId: '1:666192930154:android:b70aa1cfc69ce610193113',
     messagingSenderId: '666192930154',
     projectId: 'skillarena-1eb00',
@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
     databaseURL: 'https://skillarena-1eb00-default-rtdb.firebaseio.com',
   );
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBESTjvJ4fnERG2vmNQLXJG3cXeYLv7rDI',
+    apiKey: String.fromEnvironment('FIREBASE_IOS_API_KEY', defaultValue: 'PLACEHOLDER_IOS_API_KEY'),
     appId: '1:666192930154:ios:180f733d3b3b801e193113',
     messagingSenderId: '666192930154',
     projectId: 'skillarena-1eb00',
@@ -60,7 +60,7 @@ class DefaultFirebaseOptions {
     databaseURL: 'https://skillarena-1eb00-default-rtdb.firebaseio.com',
   );
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBESTjvJ4fnERG2vmNQLXJG3cXeYLv7rDI',
+    apiKey: String.fromEnvironment('FIREBASE_MACOS_API_KEY', defaultValue: 'PLACEHOLDER_MACOS_API_KEY'),
     appId: '1:666192930154:ios:180f733d3b3b801e193113',
     messagingSenderId: '666192930154',
     projectId: 'skillarena-1eb00',
@@ -70,7 +70,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyC0KYPVjzwQgZ9HEF8kWGhcScNW8HgDElg',
+    apiKey: String.fromEnvironment('FIREBASE_WINDOWS_API_KEY', defaultValue: 'PLACEHOLDER_WINDOWS_API_KEY'),
     appId: '1:666192930154:web:dd823dff1309d5bb193113',
     messagingSenderId: '666192930154',
     projectId: 'skillarena-1eb00',
