@@ -189,6 +189,326 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final width = MediaQuery.of(context).size.width;
+    final isNarrow = width <= 700;
+
+    final Widget formPanel = SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      physics: const BouncingScrollPhysics(),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Enter Profile Details",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              decoration: _buildInputDeco("Full Name", Icons.person),
+              style: const TextStyle(color: Colors.white),
+              validator: (val) => val == null || val.isEmpty ? "Name is required" : null,
+              onSaved: (val) => _name = val ?? "",
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              decoration: _buildInputDeco("Target Professional Role (e.g. Software Engineer)", Icons.badge),
+              style: const TextStyle(color: Colors.white),
+              validator: (val) => val == null || val.isEmpty ? "Role is required" : null,
+              onSaved: (val) => _role = val ?? "",
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              decoration: _buildInputDeco("Email Address", Icons.email),
+              style: const TextStyle(color: Colors.white),
+              validator: (val) => val == null || !val.contains('@') ? "Valid email is required" : null,
+              onSaved: (val) => _email = val ?? "",
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              decoration: _buildInputDeco("Skills (e.g. Flutter, Dart, Java, SQL)", Icons.psychology),
+              style: const TextStyle(color: Colors.white),
+              validator: (val) => val == null || val.isEmpty ? "Skills are required" : null,
+              onSaved: (val) => _skills = val ?? "",
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Key Projects",
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15),
+                ),
+                TextButton.icon(
+                  onPressed: _addProjectField,
+                  icon: const Icon(Icons.add, size: 16, color: AppColors.secondary),
+                  label: const Text("Add", style: TextStyle(color: AppColors.secondary, fontSize: 13)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ...List.generate(_projectControllers.length, (index) {
+              final pController = _projectControllers[index];
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceLight.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.border, width: 1),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Project #${index + 1}", style: const TextStyle(color: AppColors.secondary, fontSize: 12, fontWeight: FontWeight.bold)),
+                        if (_projectControllers.length > 1)
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: const Icon(Icons.delete, color: AppColors.accentPink, size: 16),
+                            onPressed: () => _removeProjectField(index),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: pController['title'],
+                      decoration: _buildInputDeco("Project Title", Icons.folder),
+                      style: const TextStyle(color: Colors.white),
+                      validator: (val) => val == null || val.isEmpty ? "Project title is required" : null,
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: pController['desc'],
+                      decoration: _buildInputDeco("Project Description / Achievements", Icons.description),
+                      style: const TextStyle(color: Colors.white),
+                      maxLines: 2,
+                      validator: (val) => val == null || val.isEmpty ? "Project description is required" : null,
+                    ),
+                  ],
+                ),
+              );
+            }),
+            
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Work/Internship Experience",
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15),
+                ),
+                TextButton.icon(
+                  onPressed: _addExperienceField,
+                  icon: const Icon(Icons.add, size: 16, color: AppColors.secondary),
+                  label: const Text("Add", style: TextStyle(color: AppColors.secondary, fontSize: 13)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ...List.generate(_experienceControllers.length, (index) {
+              final eController = _experienceControllers[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: eController,
+                        decoration: _buildInputDeco("Experience #${index + 1}", Icons.work),
+                        style: const TextStyle(color: Colors.white),
+                        validator: (val) => val == null || val.isEmpty ? "Experience entry is required" : null,
+                      ),
+                    ),
+                    if (_experienceControllers.length > 1) ...[
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: AppColors.accentPink, size: 20),
+                        onPressed: () => _removeExperienceField(index),
+                      ),
+                    ]
+                  ],
+                ),
+              );
+            }),
+            
+            const SizedBox(height: 16),
+            TextFormField(
+              decoration: _buildInputDeco("Education Credentials", Icons.school),
+              style: const TextStyle(color: Colors.white),
+              validator: (val) => val == null || val.isEmpty ? "Education is required" : null,
+              onSaved: (val) => _education = val ?? "",
+            ),
+            const SizedBox(height: 20),
+            const Text("Choose Visual Template", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              dropdownColor: AppColors.surface,
+              value: _selectedTemplate,
+              items: ["Default Slate", "Emerald Glow", "Sunset Neon"].map((t) {
+                return DropdownMenuItem(
+                  value: t,
+                  child: Text(t, style: const TextStyle(color: Colors.white)),
+                );
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() {
+                    _selectedTemplate = val;
+                  });
+                }
+              },
+              decoration: _buildInputDeco("Resume Template Theme", Icons.palette),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: _generateResume,
+              child: const Text("Compile Resume Layout", style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final Widget previewPanel = Container(
+      color: Colors.black12,
+      padding: const EdgeInsets.all(20),
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            const Text(
+              "PREVIEW SCREEN",
+              style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textSecondary, fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            if (appState.savedResumes.isNotEmpty)
+              _buildResumeCard(appState.savedResumes.last)
+            else
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(40),
+                  child: Text("Fill the form to view real-time compilation logs.", textAlign: TextAlign.center),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+
+    final Widget? bottomDrawer = appState.savedResumes.isEmpty
+        ? null
+        : Container(
+            height: 100,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              border: Border(top: BorderSide(color: AppColors.border)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Generated Resumes Archive", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: appState.savedResumes.length,
+                    itemBuilder: (context, index) {
+                      final res = appState.savedResumes[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 10.0),
+                        child: ActionChip(
+                          avatar: const Icon(Icons.description, size: 14, color: AppColors.primary),
+                          label: Text(res['name'] ?? 'Resume'),
+                          backgroundColor: AppColors.surfaceLight,
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              backgroundColor: AppColors.surface,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                              ),
+                              builder: (context) {
+                                return SingleChildScrollView(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      _buildResumeCard(res),
+                                      const SizedBox(height: 20),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: ElevatedButton.icon(
+                                              onPressed: () => Navigator.of(context).pop(),
+                                              icon: const Icon(Icons.download),
+                                              label: const Text("Export PDF"),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete, color: AppColors.accentPink),
+                                            onPressed: () {
+                                              appState.deleteResume(index);
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+
+    if (isNarrow) {
+      return DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text("📝 Resume Builder Wizard"),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            bottom: const TabBar(
+              indicatorColor: AppColors.secondary,
+              labelColor: Colors.white,
+              unselectedLabelColor: AppColors.textMuted,
+              tabs: [
+                Tab(text: "Edit Details"),
+                Tab(text: "Live Preview"),
+              ],
+            ),
+          ),
+          body: TabBarView(
+            physics: const BouncingScrollPhysics(),
+            children: [
+              formPanel,
+              previewPanel,
+            ],
+          ),
+          bottomNavigationBar: bottomDrawer,
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -199,304 +519,17 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Left input form panel
           Expanded(
             flex: 5,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              physics: const BouncingScrollPhysics(),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Enter Profile Details",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      decoration: _buildInputDeco("Full Name", Icons.person),
-                      style: const TextStyle(color: Colors.white),
-                      validator: (val) => val == null || val.isEmpty ? "Name is required" : null,
-                      onSaved: (val) => _name = val ?? "",
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      decoration: _buildInputDeco("Target Professional Role (e.g. Software Engineer)", Icons.badge),
-                      style: const TextStyle(color: Colors.white),
-                      validator: (val) => val == null || val.isEmpty ? "Role is required" : null,
-                      onSaved: (val) => _role = val ?? "",
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      decoration: _buildInputDeco("Email Address", Icons.email),
-                      style: const TextStyle(color: Colors.white),
-                      validator: (val) => val == null || !val.contains('@') ? "Valid email is required" : null,
-                      onSaved: (val) => _email = val ?? "",
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      decoration: _buildInputDeco("Skills (e.g. Flutter, Dart, Java, SQL)", Icons.psychology),
-                      style: const TextStyle(color: Colors.white),
-                      validator: (val) => val == null || val.isEmpty ? "Skills are required" : null,
-                      onSaved: (val) => _skills = val ?? "",
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Key Projects",
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15),
-                        ),
-                        TextButton.icon(
-                          onPressed: _addProjectField,
-                          icon: const Icon(Icons.add, size: 16, color: AppColors.secondary),
-                          label: const Text("Add", style: TextStyle(color: AppColors.secondary, fontSize: 13)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    ...List.generate(_projectControllers.length, (index) {
-                      final pController = _projectControllers[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceLight.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.border, width: 1),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("Project #${index + 1}", style: const TextStyle(color: AppColors.secondary, fontSize: 12, fontWeight: FontWeight.bold)),
-                                if (_projectControllers.length > 1)
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                    icon: const Icon(Icons.delete, color: AppColors.accentPink, size: 16),
-                                    onPressed: () => _removeProjectField(index),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              controller: pController['title'],
-                              decoration: _buildInputDeco("Project Title", Icons.folder),
-                              style: const TextStyle(color: Colors.white),
-                              validator: (val) => val == null || val.isEmpty ? "Project title is required" : null,
-                            ),
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              controller: pController['desc'],
-                              decoration: _buildInputDeco("Project Description / Achievements", Icons.description),
-                              style: const TextStyle(color: Colors.white),
-                              maxLines: 2,
-                              validator: (val) => val == null || val.isEmpty ? "Project description is required" : null,
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                    
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Work/Internship Experience",
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15),
-                        ),
-                        TextButton.icon(
-                          onPressed: _addExperienceField,
-                          icon: const Icon(Icons.add, size: 16, color: AppColors.secondary),
-                          label: const Text("Add", style: TextStyle(color: AppColors.secondary, fontSize: 13)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    ...List.generate(_experienceControllers.length, (index) {
-                      final eController = _experienceControllers[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: eController,
-                                decoration: _buildInputDeco("Experience #${index + 1}", Icons.work),
-                                style: const TextStyle(color: Colors.white),
-                                validator: (val) => val == null || val.isEmpty ? "Experience entry is required" : null,
-                              ),
-                            ),
-                            if (_experienceControllers.length > 1) ...[
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: AppColors.accentPink, size: 20),
-                                onPressed: () => _removeExperienceField(index),
-                              ),
-                            ]
-                          ],
-                        ),
-                      );
-                    }),
-                    
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      decoration: _buildInputDeco("Education Credentials", Icons.school),
-                      style: const TextStyle(color: Colors.white),
-                      validator: (val) => val == null || val.isEmpty ? "Education is required" : null,
-                      onSaved: (val) => _education = val ?? "",
-                    ),
-                    const SizedBox(height: 20),
-                    const Text("Choose Visual Template", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      dropdownColor: AppColors.surface,
-                      value: _selectedTemplate,
-                      items: ["Default Slate", "Emerald Glow", "Sunset Neon"].map((t) {
-                        return DropdownMenuItem(
-                          value: t,
-                          child: Text(t, style: const TextStyle(color: Colors.white)),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          setState(() {
-                            _selectedTemplate = val;
-                          });
-                        }
-                      },
-                      decoration: _buildInputDeco("Resume Template Theme", Icons.palette),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onPressed: _generateResume,
-                      child: const Text("Compile Resume Layout", style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            child: formPanel,
           ),
-          
-          // Right preview panel (for desktop layout compatibility, hidden or small on mobile)
-          if (MediaQuery.of(context).size.width > 700)
-            Expanded(
-              flex: 4,
-              child: Container(
-                color: Colors.black12,
-                padding: const EdgeInsets.all(20),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const Text(
-                        "PREVIEW SCREEN",
-                        style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textSecondary, fontSize: 12),
-                      ),
-                      const SizedBox(height: 12),
-                      if (appState.savedResumes.isNotEmpty)
-                        _buildResumeCard(appState.savedResumes.last)
-                      else
-                        const Card(
-                          child: Padding(
-                            padding: EdgeInsets.all(40),
-                            child: Text("Fill the form to view real-time compilation logs.", textAlign: TextAlign.center),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            )
+          Expanded(
+            flex: 4,
+            child: previewPanel,
+          ),
         ],
       ),
-      // Bottom drawer listing previously built resumes
-      bottomNavigationBar: appState.savedResumes.isEmpty 
-          ? null 
-          : Container(
-              height: 100,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: const BoxDecoration(
-                color: AppColors.surface,
-                border: Border(top: BorderSide(color: AppColors.border)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Generated Resumes Archive", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: appState.savedResumes.length,
-                      itemBuilder: (context, index) {
-                        final res = appState.savedResumes[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 10.0),
-                          child: ActionChip(
-                            avatar: const Icon(Icons.description, size: 14, color: AppColors.primary),
-                            label: Text(res['name'] ?? 'Resume'),
-                            backgroundColor: AppColors.surfaceLight,
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                backgroundColor: AppColors.surface,
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                                ),
-                                builder: (context) {
-                                  return SingleChildScrollView(
-                                    padding: const EdgeInsets.all(24),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        _buildResumeCard(res),
-                                        const SizedBox(height: 20),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: ElevatedButton.icon(
-                                                onPressed: () => Navigator.of(context).pop(),
-                                                icon: const Icon(Icons.download),
-                                                label: const Text("Export PDF"),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            IconButton(
-                                              icon: const Icon(Icons.delete, color: AppColors.accentPink),
-                                              onPressed: () {
-                                                appState.deleteResume(index);
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
+      bottomNavigationBar: bottomDrawer,
     );
   }
 

@@ -271,20 +271,25 @@ class _AptitudeQuizScreenState extends State<AptitudeQuizScreen> {
           },
         ),
       ),
-      body: Stack(
-        alignment: Alignment.center,
-        children: [
-          _isQuizOver ? _buildScoreCard() : _buildGameplay(currentQuestion),
-          Align(
-            alignment: Alignment.topCenter,
-            child: ConfettiWidget(
-              confettiController: _confettiController,
-              blastDirectionality: BlastDirectionality.explosive,
-              shouldLoop: false,
-              colors: const [Colors.amber, Colors.lightBlue, Colors.pinkAccent, Colors.tealAccent],
-            ),
-          )
-        ],
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 650),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              _isQuizOver ? _buildScoreCard() : _buildGameplay(currentQuestion),
+              Align(
+                alignment: Alignment.topCenter,
+                child: ConfettiWidget(
+                  confettiController: _confettiController,
+                  blastDirectionality: BlastDirectionality.explosive,
+                  shouldLoop: false,
+                  colors: const [Colors.amber, Colors.lightBlue, Colors.pinkAccent, Colors.tealAccent],
+                ),
+              )
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -14,9 +14,13 @@ class ProfileTab extends StatelessWidget {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           // Upper Navigation Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -144,8 +148,10 @@ class ProfileTab extends StatelessWidget {
                   style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 14),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.spaceEvenly,
                   children: [
                     _buildThemeOption(context, appState, 'cyberpunk', 'Cyberpunk', [const Color(0xFF7C3AED), const Color(0xFF06B6D4)]),
                     _buildThemeOption(context, appState, 'emerald', 'Forest', [const Color(0xFF10B981), const Color(0xFF34D399)]),
@@ -226,7 +232,9 @@ class ProfileTab extends StatelessWidget {
               child: const Text("Login / Sign Up", style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           const SizedBox(height: 20),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }

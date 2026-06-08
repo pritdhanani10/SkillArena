@@ -24,6 +24,76 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final isWide = width > 800;
+
+    Widget bodyContent = IndexedStack(
+      index: _currentIndex,
+      children: _tabs,
+    );
+
+    if (isWide) {
+      bodyContent = Row(
+        children: [
+          NavigationRail(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            backgroundColor: AppColors.surface,
+            selectedIconTheme: const IconThemeData(color: AppColors.secondary),
+            unselectedIconTheme: const IconThemeData(color: AppColors.textMuted),
+            selectedLabelTextStyle: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary, fontSize: 12),
+            unselectedLabelTextStyle: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+            labelType: NavigationRailLabelType.all,
+            destinations: const [
+              NavigationRailDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home),
+                label: Text('Home'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.sports_esports_outlined),
+                selectedIcon: Icon(Icons.sports_esports),
+                label: Text('Challenges'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.emoji_events_outlined),
+                selectedIcon: Icon(Icons.emoji_events),
+                label: Text('Leaderboard'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: Text('Profile'),
+              ),
+            ],
+          ),
+          const VerticalDivider(thickness: 1, width: 1, color: AppColors.border),
+          Expanded(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 1100),
+                      child: IndexedStack(
+                        index: _currentIndex,
+                        children: _tabs,
+                      ),
+                    ),
+                  ),
+                ),
+                const MockBannerAd(),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
     return Scaffold(
       body: Stack(
         children: [
@@ -48,63 +118,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           SafeArea(
-            child: IndexedStack(
-              index: _currentIndex,
-              children: _tabs,
-            ),
+            child: bodyContent,
           ),
         ],
       ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Bottom Navigation Bar
-          Theme(
-            data: Theme.of(context).copyWith(
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-            ),
-            child: BottomNavigationBar(
-              currentIndex: _currentIndex,
-              onTap: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              backgroundColor: AppColors.surface,
-              selectedItemColor: AppColors.secondary,
-              unselectedItemColor: AppColors.textMuted,
-              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-              unselectedLabelStyle: const TextStyle(fontSize: 11),
-              type: BottomNavigationBarType.fixed,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home_outlined),
-                  activeIcon: Icon(Icons.home, color: AppColors.secondary),
-                  label: 'Home',
+      bottomNavigationBar: isWide
+          ? null
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Bottom Navigation Bar
+                Theme(
+                  data: Theme.of(context).copyWith(
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                  ),
+                  child: BottomNavigationBar(
+                    currentIndex: _currentIndex,
+                    onTap: (index) {
+                      setState(() {
+                        _currentIndex = index;
+                      });
+                    },
+                    backgroundColor: AppColors.surface,
+                    selectedItemColor: AppColors.secondary,
+                    unselectedItemColor: AppColors.textMuted,
+                    selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    unselectedLabelStyle: const TextStyle(fontSize: 11),
+                    type: BottomNavigationBarType.fixed,
+                    items: const [
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.home_outlined),
+                        activeIcon: Icon(Icons.home, color: AppColors.secondary),
+                        label: 'Home',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.sports_esports_outlined),
+                        activeIcon: Icon(Icons.sports_esports, color: AppColors.secondary),
+                        label: 'Challenges',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.emoji_events_outlined),
+                        activeIcon: Icon(Icons.emoji_events, color: AppColors.secondary),
+                        label: 'Leaderboard',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.person_outline),
+                        activeIcon: Icon(Icons.person, color: AppColors.secondary),
+                        label: 'Profile',
+                      ),
+                    ],
+                  ),
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.sports_esports_outlined),
-                  activeIcon: Icon(Icons.sports_esports, color: AppColors.secondary),
-                  label: 'Challenges',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.emoji_events_outlined),
-                  activeIcon: Icon(Icons.emoji_events, color: AppColors.secondary),
-                  label: 'Leaderboard',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person_outline),
-                  activeIcon: Icon(Icons.person, color: AppColors.secondary),
-                  label: 'Profile',
-                ),
+                // Ad Banner
+                const MockBannerAd(),
               ],
             ),
-          ),
-          // Ad Banner
-          const MockBannerAd(),
-        ],
-      ),
     );
   }
 }

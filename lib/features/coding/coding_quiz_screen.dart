@@ -200,20 +200,25 @@ class _CodingQuizScreenState extends State<CodingQuizScreen> {
           },
         ),
       ),
-      body: Stack(
-        alignment: Alignment.center,
-        children: [
-          _isGameOver ? _buildScoreCard() : _buildGameplay(problem),
-          Align(
-            alignment: Alignment.topCenter,
-            child: ConfettiWidget(
-              confettiController: _confettiController,
-              blastDirectionality: BlastDirectionality.explosive,
-              shouldLoop: false,
-              colors: const [Colors.amber, Colors.cyan, Colors.purple, Colors.teal],
-            ),
-          )
-        ],
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 650),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              _isGameOver ? _buildScoreCard() : _buildGameplay(problem),
+              Align(
+                alignment: Alignment.topCenter,
+                child: ConfettiWidget(
+                  confettiController: _confettiController,
+                  blastDirectionality: BlastDirectionality.explosive,
+                  shouldLoop: false,
+                  colors: const [Colors.amber, Colors.cyan, Colors.purple, Colors.teal],
+                ),
+              )
+            ],
+          ),
+        ),
       ),
     );
   }

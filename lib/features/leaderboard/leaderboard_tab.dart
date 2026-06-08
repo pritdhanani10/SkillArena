@@ -100,73 +100,78 @@ class _LeaderboardTabState extends State<LeaderboardTab> with SingleTickerProvid
     final podiumUsers = hasPodium ? users.sublist(0, 3) : <Map<String, dynamic>>[];
     final remainingUsers = hasPodium ? users.sublist(3) : users;
 
-    return Column(
-      children: [
-        if (hasPodium) ...[
-          const SizedBox(height: 16),
-          _buildPodiumGraphic(podiumUsers),
-          const SizedBox(height: 16),
-        ],
-        Expanded(
-          child: Container(
-            decoration: const BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              itemCount: remainingUsers.length,
-              itemBuilder: (context, index) {
-                final user = remainingUsers[index];
-                final isPlayer = user['isPlayer'] == true;
-                
-                // calculate ranks index + 4 because 1-3 are in podium
-                final rank = hasPodium ? index + 4 : index + 1;
-
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isPlayer ? AppColors.primary.withOpacity(0.12) : AppColors.surfaceLight,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isPlayer ? AppColors.primary : Colors.transparent,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        "#$rank",
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textSecondary, fontSize: 13),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(user['avatar'], style: const TextStyle(fontSize: 20)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          user['name'],
-                          style: TextStyle(
-                            fontWeight: isPlayer ? FontWeight.bold : FontWeight.normal,
-                            color: Colors.white,
-                          ),
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: Column(
+          children: [
+            if (hasPodium) ...[
+              const SizedBox(height: 16),
+              _buildPodiumGraphic(podiumUsers),
+              const SizedBox(height: 16),
+            ],
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  itemCount: remainingUsers.length,
+                  itemBuilder: (context, index) {
+                    final user = remainingUsers[index];
+                    final isPlayer = user['isPlayer'] == true;
+                    
+                    // calculate ranks index + 4 because 1-3 are in podium
+                    final rank = hasPodium ? index + 4 : index + 1;
+    
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isPlayer ? AppColors.primary.withOpacity(0.12) : AppColors.surfaceLight,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isPlayer ? AppColors.primary : Colors.transparent,
+                          width: 1.5,
                         ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                      child: Row(
                         children: [
-                          Text("${user['xp']} XP", style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.secondary)),
-                          Text("${user['coins']} Coins", style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                          Text(
+                            "#$rank",
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textSecondary, fontSize: 13),
+                          ),
+                          const SizedBox(width: 16),
+                          Text(user['avatar'], style: const TextStyle(fontSize: 20)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              user['name'],
+                              style: TextStyle(
+                                fontWeight: isPlayer ? FontWeight.bold : FontWeight.normal,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text("${user['xp']} XP", style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.secondary)),
+                              Text("${user['coins']} Coins", style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                            ],
+                          ),
                         ],
                       ),
-                    ],
-                  ),
-                );
-              },
+                    );
+                  },
+                ),
+              ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 

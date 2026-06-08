@@ -185,33 +185,36 @@ class _LudoScreenState extends State<LudoScreen> {
       body: Stack(
         alignment: Alignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Opponent HUD (Green Zone)
-                _buildPlayerHUD(
-                  name: "Sneha_32",
-                  color: AppColors.accentPink,
-                  position: _opponentPawnPosition,
-                  isActive: !_isPlayerTurn,
-                ),
-
-                // Ludo mini track board
-                _buildLudoBoard(),
-
-                // Player HUD (Red Zone)
-                _buildPlayerHUD(
-                  name: "You",
-                  color: AppColors.secondary,
-                  position: _playerPawnPosition,
-                  isActive: _isPlayerTurn,
-                ),
-
-                // Dice Controller
-                _buildDiceController(),
-              ],
+          Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 550),
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Opponent HUD (Green Zone)
+                  _buildPlayerHUD(
+                    name: "Sneha_32",
+                    color: AppColors.accentPink,
+                    position: _opponentPawnPosition,
+                    isActive: !_isPlayerTurn,
+                  ),
+  
+                  // Ludo mini track board
+                  _buildLudoBoard(),
+  
+                  // Player HUD (Red Zone)
+                  _buildPlayerHUD(
+                    name: "You",
+                    color: AppColors.secondary,
+                    position: _playerPawnPosition,
+                    isActive: _isPlayerTurn,
+                  ),
+  
+                  // Dice Controller
+                  _buildDiceController(),
+                ],
+              ),
             ),
           ),
 

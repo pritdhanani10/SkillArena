@@ -13,9 +13,21 @@ class FirebaseService {
 
   static Future<void> initialize() async {
     try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
+      final options = DefaultFirebaseOptions.currentPlatform;
+      if (options.apiKey.isEmpty || options.apiKey.contains('_YOUR_') || options.apiKey.contains('PLACEHOLDER')) {
+        throw Exception("Firebase API Key is empty or placeholder. Deferring connection.");
+      }
+      try {
+        await Firebase.initializeApp(
+          options: options,
+        );
+      } catch (e) {
+        if (e.toString().contains('duplicate-app')) {
+          debugPrint("Firebase already initialized (duplicate-app). Using existing instance.");
+        } else {
+          rethrow;
+        }
+      }
       _auth = FirebaseAuth.instance;
       _db = FirebaseFirestore.instance;
       _isConfigured = true;

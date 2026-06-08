@@ -82,14 +82,33 @@ flutter doctor
    ```
 
 3. **Run the application on Web/Chrome**:
-   ```bash
-   flutter run -d chrome
-   ```
+   - **Offline Replica Mode (Default)**:
+     ```bash
+     flutter run -d chrome
+     ```
+     *(Launches immediately using simulated and local databases. No configurations needed.)*
+   - **Live Sync Mode**:
+     ```bash
+     flutter run -d chrome --dart-define-from-file=config.json
+     ```
+     *(Requires active keys in `config.json` as described below.)*
 
 4. **Build the production web bundle**:
    ```bash
    flutter build web
    ```
+
+### 🔑 Firebase Connectivity & Secrets Setup
+To secure keys and protect them from exposing as public secrets, all Firebase API keys are loaded dynamically using compilation flags. The application automatically falls back to **Offline Replica Mode** using local SharedPreferences caches if keys are missing or unconfigured.
+
+To connect with a live Firebase instance:
+1. Copy the reference configuration template:
+   ```bash
+   cp config.json.example config.json
+   ```
+2. Edit `config.json` and enter your valid Firebase API credentials.
+3. Run or compile the app using `--dart-define-from-file=config.json`.
+
 
 ---
 

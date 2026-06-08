@@ -326,47 +326,58 @@ class _FlashCardsTabState extends State<FlashCardsTab> with SingleTickerProvider
                     width: 2,
                   ),
                 ),
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _isFlipped ? "ANSWER" : "QUESTION",
-                        style: TextStyle(
-                          fontSize: 11, 
-                          fontWeight: FontWeight.bold, 
-                          color: _isFlipped ? AppColors.secondary : AppColors.primary,
-                          letterSpacing: 1.5,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.all(24),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight - 48,
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        _isFlipped ? card['answer']! : card['question']!,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: _isFlipped ? 14 : 18, 
-                          fontWeight: _isFlipped ? FontWeight.normal : FontWeight.bold,
-                          color: Colors.white,
-                          height: 1.45,
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _isFlipped ? Icons.flip_to_front : Icons.flip_to_back, 
-                            color: AppColors.textMuted, 
-                            size: 16,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _isFlipped ? "ANSWER" : "QUESTION",
+                                style: TextStyle(
+                                  fontSize: 11, 
+                                  fontWeight: FontWeight.bold, 
+                                  color: _isFlipped ? AppColors.secondary : AppColors.primary,
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Text(
+                                _isFlipped ? card['answer']! : card['question']!,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: _isFlipped ? 14 : 18, 
+                                  fontWeight: _isFlipped ? FontWeight.normal : FontWeight.bold,
+                                  color: Colors.white,
+                                  height: 1.45,
+                                ),
+                              ),
+                              const SizedBox(height: 28),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    _isFlipped ? Icons.flip_to_front : Icons.flip_to_back, 
+                                    color: AppColors.textMuted, 
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  const Text("Tap to flip card", style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                                ],
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 6),
-                          const Text("Tap to flip card", style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                        ],
+                        ),
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
             ),

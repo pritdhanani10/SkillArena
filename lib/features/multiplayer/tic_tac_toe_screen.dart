@@ -218,30 +218,33 @@ class _TicTacToeScreenState extends State<TicTacToeScreen> {
       body: Stack(
         alignment: Alignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Top HUD: Profiles & Chat Emojis
-                _buildPlayersHud(),
-
-                // Board Status
-                Text(
-                  _gameStatus,
-                  style: TextStyle(
-                    fontSize: 18, 
-                    fontWeight: FontWeight.bold, 
-                    color: _winner == "X" ? AppColors.accentGreen : (_winner == "O" ? AppColors.accentPink : Colors.white),
+          Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 500),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Top HUD: Profiles & Chat Emojis
+                  _buildPlayersHud(),
+  
+                  // Board Status
+                  Text(
+                    _gameStatus,
+                    style: TextStyle(
+                      fontSize: 18, 
+                      fontWeight: FontWeight.bold, 
+                      color: _winner == "X" ? AppColors.accentGreen : (_winner == "O" ? AppColors.accentPink : Colors.white),
+                    ),
                   ),
-                ),
-
-                // 3x3 Neon Grid
-                _buildGridBoard(),
-
-                // Interactive Emoji chats
-                _buildEmoticonBar(),
-              ],
+  
+                  // 3x3 Neon Grid
+                  _buildGridBoard(),
+  
+                  // Interactive Emoji chats
+                  _buildEmoticonBar(),
+                ],
+              ),
             ),
           ),
 

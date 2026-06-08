@@ -14,135 +14,157 @@ class HomeTab extends StatelessWidget {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // User Status Header
-          _buildUserHeader(context, appState),
-          const SizedBox(height: 24),
-
-          // Daily Challenge Status Widget
-          _buildDailyChallengeCard(context, appState),
-          const SizedBox(height: 24),
-
-          // Categories Title
-          const Text(
-            "Explore Modules",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Categories Grid
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 14,
-            mainAxisSpacing: 14,
-            childAspectRatio: 1.15,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 1100),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              FadeInSlide(
-                delay: 50,
-                child: _buildCategoryCard(
-                  context,
-                  title: "Aptitude Arena",
-                  icon: "🧠",
-                  tagline: "Practice & Quizzes",
-                  gradient: AppTheme.primaryGradient,
-                  route: "/aptitude",
+              // User Status Header
+              _buildUserHeader(context, appState),
+              const SizedBox(height: 24),
+
+              // Daily Challenge Status Widget
+              _buildDailyChallengeCard(context, appState),
+              const SizedBox(height: 24),
+
+              // Categories Title
+              const Text(
+                "Explore Modules",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 0.5,
                 ),
               ),
-              FadeInSlide(
-                delay: 100,
-                child: _buildCategoryCard(
-                  context,
-                  title: "Coding Challenge",
-                  icon: "💻",
-                  tagline: "DSA & Languages",
-                  gradient: AppTheme.secondaryGradient,
-                  route: "/coding",
-                ),
+              const SizedBox(height: 14),
+
+              // Categories Grid
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = constraints.maxWidth;
+                  int crossAxisCount = 2;
+                  double childAspectRatio = 1.15;
+
+                  if (width > 900) {
+                    crossAxisCount = 4;
+                    childAspectRatio = 1.25;
+                  } else if (width > 600) {
+                    crossAxisCount = 3;
+                    childAspectRatio = 1.2;
+                  }
+
+                  return GridView.count(
+                    crossAxisCount: crossAxisCount,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
+                    childAspectRatio: childAspectRatio,
+                    children: [
+                      FadeInSlide(
+                        delay: 50,
+                        child: _buildCategoryCard(
+                          context,
+                          title: "Aptitude Arena",
+                          icon: "🧠",
+                          tagline: "Practice & Quizzes",
+                          gradient: AppTheme.primaryGradient,
+                          route: "/aptitude",
+                        ),
+                      ),
+                      FadeInSlide(
+                        delay: 100,
+                        child: _buildCategoryCard(
+                          context,
+                          title: "Coding Challenge",
+                          icon: "💻",
+                          tagline: "DSA & Languages",
+                          gradient: AppTheme.secondaryGradient,
+                          route: "/coding",
+                        ),
+                      ),
+                      FadeInSlide(
+                        delay: 150,
+                        child: _buildCategoryCard(
+                          context,
+                          title: "Placement Prep",
+                          icon: "📚",
+                          tagline: "Q&A, Resume, AI",
+                          gradient: AppTheme.pinkGradient,
+                          route: "/placement",
+                        ),
+                      ),
+                      FadeInSlide(
+                        delay: 200,
+                        child: _buildCategoryCard(
+                          context,
+                          title: "Word Puzzle",
+                          icon: "🔤",
+                          tagline: "Search, Daily Words",
+                          gradient: AppTheme.greenGradient,
+                          route: "/word-puzzle",
+                        ),
+                      ),
+                      FadeInSlide(
+                        delay: 250,
+                        child: _buildCategoryCard(
+                          context,
+                          title: "Brain Training",
+                          icon: "🎯",
+                          tagline: "Memory & Simon",
+                          gradient: AppTheme.orangeGradient,
+                          route: "/brain-training",
+                        ),
+                      ),
+                      FadeInSlide(
+                        delay: 300,
+                        child: _buildCategoryCard(
+                          context,
+                          title: "Multiplayer Games",
+                          icon: "🎮",
+                          tagline: "Tic-Tac-Toe & Ludo",
+                          gradient: AppTheme.secondaryGradient,
+                          route: "/multiplayer",
+                        ),
+                      ),
+                      FadeInSlide(
+                        delay: 350,
+                        child: _buildCategoryCard(
+                          context,
+                          title: "Leaderboard",
+                          icon: "🏆",
+                          tagline: "Rankings & XP",
+                          gradient: AppTheme.orangeGradient,
+                          route: "/dashboard",
+                          isLeaderboard: true,
+                        ),
+                      ),
+                      FadeInSlide(
+                        delay: 400,
+                        child: _buildCategoryCard(
+                          context,
+                          title: "Daily Streak",
+                          icon: "🔥",
+                          tagline: "${appState.streak} Days Active",
+                          gradient: AppTheme.pinkGradient,
+                          route: "",
+                          isStreak: true,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
-              FadeInSlide(
-                delay: 150,
-                child: _buildCategoryCard(
-                  context,
-                  title: "Placement Prep",
-                  icon: "📚",
-                  tagline: "Q&A, Resume, AI",
-                  gradient: AppTheme.pinkGradient,
-                  route: "/placement",
-                ),
-              ),
-              FadeInSlide(
-                delay: 200,
-                child: _buildCategoryCard(
-                  context,
-                  title: "Word Puzzle",
-                  icon: "🔤",
-                  tagline: "Search, Daily Words",
-                  gradient: AppTheme.greenGradient,
-                  route: "/word-puzzle",
-                ),
-              ),
-              FadeInSlide(
-                delay: 250,
-                child: _buildCategoryCard(
-                  context,
-                  title: "Brain Training",
-                  icon: "🎯",
-                  tagline: "Memory & Simon",
-                  gradient: AppTheme.orangeGradient,
-                  route: "/brain-training",
-                ),
-              ),
-              FadeInSlide(
-                delay: 300,
-                child: _buildCategoryCard(
-                  context,
-                  title: "Multiplayer Games",
-                  icon: "🎮",
-                  tagline: "Tic-Tac-Toe & Ludo",
-                  gradient: AppTheme.secondaryGradient,
-                  route: "/multiplayer",
-                ),
-              ),
-              FadeInSlide(
-                delay: 350,
-                child: _buildCategoryCard(
-                  context,
-                  title: "Leaderboard",
-                  icon: "🏆",
-                  tagline: "Rankings & XP",
-                  gradient: AppTheme.orangeGradient,
-                  route: "/dashboard",
-                  isLeaderboard: true,
-                ),
-              ),
-              FadeInSlide(
-                delay: 400,
-                child: _buildCategoryCard(
-                  context,
-                  title: "Daily Streak",
-                  icon: "🔥",
-                  tagline: "${appState.streak} Days Active",
-                  gradient: AppTheme.pinkGradient,
-                  route: "",
-                  isStreak: true,
-                ),
-              ),
+              
+              const SizedBox(height: 24),
+              // Premium CTA Card
+              _buildPremiumCTA(context, appState),
             ],
           ),
-          
-          const SizedBox(height: 24),
-          // Premium CTA Card
-          _buildPremiumCTA(context, appState),
-        ],
+        ),
       ),
     );
   }
