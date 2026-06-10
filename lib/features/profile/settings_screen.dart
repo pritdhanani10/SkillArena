@@ -220,6 +220,24 @@ class SettingsScreen extends StatelessWidget {
                                   );
                                 },
                               ),
+                              const Divider(height: 24),
+                              _buildActionItem(
+                                context: context,
+                                title: "Test Streak Notification",
+                                subtitle: "Trigger and inspect sliding notification animations",
+                                icon: Icons.notification_important_outlined,
+                                color: AppColors.accentYellow,
+                                onTap: () {
+                                  appState.testStreakNotification();
+                                  Navigator.of(context).pop();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Streak notification triggered!"),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                },
+                              ),
                             ],
                           ),
                         ),

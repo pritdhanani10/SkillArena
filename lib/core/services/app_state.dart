@@ -704,4 +704,13 @@ class AppState extends ChangeNotifier {
       );
     }
   }
+
+  bool _testNotificationTriggered = false;
+  bool get testNotificationTriggered => _testNotificationTriggered;
+
+  void testStreakNotification() {
+    _testNotificationTriggered = true;
+    notifyListeners();
+    _testNotificationTriggered = false;
+  }
 }

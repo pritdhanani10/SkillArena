@@ -33,6 +33,30 @@
   <link rel="manifest" href="manifest.json">
   <!-- Google reCAPTCHA v3 Script -->
   <script src="https://www.google.com/recaptcha/api.js?render=6Lf8MRQtAAAAADWI__i9avMpYG-VvGzAhJeLwTpz"></script>
+  <script>
+    function showBrowserNotification(title, body, iconUrl) {
+      if (!("Notification" in window)) {
+        console.log("This browser does not support system notifications.");
+        return;
+      }
+      
+      if (Notification.permission === "granted") {
+        new Notification(title, {
+          body: body,
+          icon: iconUrl || "favicon.png"
+        });
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(function (permission) {
+          if (permission === "granted") {
+            new Notification(title, {
+              body: body,
+              icon: iconUrl || "favicon.png"
+            });
+          }
+        });
+      }
+    }
+  </script>
 </head>
 <body>
   <!--

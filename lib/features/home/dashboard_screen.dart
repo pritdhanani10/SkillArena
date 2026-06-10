@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'dart:js' as js;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'home_tab.dart';
 import '../leaderboard/leaderboard_tab.dart';
 import '../profile/profile_tab.dart';
 import '../../shared/widgets/mock_ad_widgets.dart';
 import '../../core/theme/theme.dart';
+import '../../core/services/app_state.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -12,7 +16,7 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with TickerProviderStateMixin {
   int _currentIndex = 0;
 
   final List<Widget> _tabs = [
@@ -21,6 +25,245 @@ class _DashboardScreenState extends State<DashboardScreen> {
     const LeaderboardTab(),
     const ProfileTab(),
   ];
+
+  AppNotification? _activeNotification;
+  late AnimationController _notificationController;
+  late Animation<Offset> _notificationOffsetAnimation;
+  late AnimationController _iconPulseController;
+  bool _wasDailyCompleted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _notificationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    
+    _notificationOffsetAnimation = Tween<Offset>(
+      begin: const Offset(0, -1.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _notificationController,
+      curve: Curves.easeOutBack,
+    ));
+
+    _iconPulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat(reverse: true);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appState = Provider.of<AppState>(context, listen: false);
+      _wasDailyCompleted = appState.isDailyChallengeCompleted;
+      appState.addListener(_onAppStateChanged);
+      _checkAndShowStreakNotification();
+    });
+  }
+
+  @override
+  void dispose() {
+    try {
+      Provider.of<AppState>(context, listen: false).removeListener(_onAppStateChanged);
+    } catch (_) {}
+    _notificationController.dispose();
+    _iconPulseController.dispose();
+    super.dispose();
+  }
+
+  void _onAppStateChanged() {
+    final appState = Provider.of<AppState>(context, listen: false);
+    if (appState.isLoggedIn) {
+      if (appState.testNotificationTriggered) {
+        _checkAndShowStreakNotification();
+        return;
+      }
+      if (appState.isDailyChallengeCompleted && !_wasDailyCompleted) {
+        _wasDailyCompleted = true;
+        _showNotification(AppNotification(
+          title: "Streak Secured! 🔥",
+          message: "Amazing job! Your ${appState.streak}-day streak is safe for today.",
+          icon: Icons.emoji_events_rounded,
+          color: AppColors.accentYellow,
+        ));
+      } else if (!appState.isDailyChallengeCompleted) {
+        _wasDailyCompleted = false;
+      }
+    } else {
+      _wasDailyCompleted = false;
+    }
+  }
+
+  void _checkAndShowStreakNotification() {
+    final appState = Provider.of<AppState>(context, listen: false);
+    if (!appState.isLoggedIn) return;
+
+    if (appState.isDailyChallengeCompleted) {
+      _showNotification(AppNotification(
+        title: "Streak Secured! 🔥",
+        message: "Your ${appState.streak}-day streak is safe for today. Complete challenges tomorrow to grow your streak!",
+        icon: Icons.emoji_events_rounded,
+        color: AppColors.accentYellow,
+      ));
+    } else {
+      _showNotification(AppNotification(
+        title: "Streak in Danger! ⚠️",
+        message: "Your ${appState.streak}-day streak resets in less than 24 hours! Complete your challenges now.",
+        icon: Icons.warning_amber_rounded,
+        color: AppColors.accentOrange,
+        isWarning: true,
+      ));
+    }
+  }
+
+  void _showNotification(AppNotification notification) {
+    if (!mounted) return;
+    setState(() {
+      _activeNotification = notification;
+    });
+    _notificationController.forward();
+
+    // Trigger native browser notification on web platforms
+    if (kIsWeb) {
+      try {
+        js.context.callMethod('showBrowserNotification', [
+          notification.title,
+          notification.message,
+          'favicon.png'
+        ]);
+      } catch (e) {
+        debugPrint('Failed to show browser notification: $e');
+      }
+    }
+
+    // Auto-dismiss after 6 seconds
+    Future.delayed(const Duration(seconds: 6), () {
+      if (mounted && _activeNotification == notification) {
+        _notificationController.reverse().then((_) {
+          if (mounted) {
+            setState(() {
+              _activeNotification = null;
+            });
+          }
+        });
+      }
+    });
+  }
+
+  Widget _buildNotificationWidget() {
+    if (_activeNotification == null) return const SizedBox.shrink();
+    final n = _activeNotification!;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface.withOpacity(0.95),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: n.color.withOpacity(0.4), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: n.color.withOpacity(0.18),
+            blurRadius: 16,
+            spreadRadius: 1,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          ScaleTransition(
+            scale: Tween<double>(begin: 0.9, end: 1.12).animate(
+              CurvedAnimation(
+                parent: _iconPulseController,
+                curve: Curves.easeInOut,
+              ),
+            ),
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: n.color.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                n.icon,
+                color: n.color,
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  n.title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  n.message,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withOpacity(0.85),
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (n.isWarning)
+            TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: n.color.withOpacity(0.15),
+                foregroundColor: n.color,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onPressed: () {
+                _notificationController.reverse().then((_) {
+                  if (mounted) {
+                    setState(() {
+                      _activeNotification = null;
+                      _currentIndex = 1; // Direct to Challenges tab
+                    });
+                  }
+                });
+              },
+              child: const Text(
+                "Play",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ),
+          IconButton(
+            icon: Icon(Icons.close, color: Colors.white.withOpacity(0.5), size: 16),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: () {
+              _notificationController.reverse().then((_) {
+                if (mounted) {
+                  setState(() {
+                    _activeNotification = null;
+                  });
+                }
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,6 +363,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           SafeArea(
             child: bodyContent,
           ),
+          if (_activeNotification != null)
+            Positioned(
+              top: 10,
+              left: 16,
+              right: 16,
+              child: SafeArea(
+                child: SlideTransition(
+                  position: _notificationOffsetAnimation,
+                  child: _buildNotificationWidget(),
+                ),
+              ),
+            ),
         ],
       ),
       bottomNavigationBar: isWide
@@ -295,4 +550,20 @@ class ChallengesTab extends StatelessWidget {
       ),
     );
   }
+}
+
+class AppNotification {
+  final String title;
+  final String message;
+  final IconData icon;
+  final Color color;
+  final bool isWarning;
+
+  const AppNotification({
+    required this.title,
+    required this.message,
+    required this.icon,
+    required this.color,
+    this.isWarning = false,
+  });
 }
