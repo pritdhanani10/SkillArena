@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:js' as js;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'home_tab.dart';
 import '../leaderboard/leaderboard_tab.dart';
 import '../profile/profile_tab.dart';
 import '../../shared/widgets/mock_ad_widgets.dart';
 import '../../core/theme/theme.dart';
 import '../../core/services/app_state.dart';
+import '../../core/services/notification_helper.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -124,18 +123,8 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     });
     _notificationController.forward();
 
-    // Trigger native browser notification on web platforms
-    if (kIsWeb) {
-      try {
-        js.context.callMethod('showBrowserNotification', [
-          notification.title,
-          notification.message,
-          'favicon.png'
-        ]);
-      } catch (e) {
-        debugPrint('Failed to show browser notification: $e');
-      }
-    }
+    // Trigger native browser notification on web platforms (compile-safe)
+    showWebNotification(notification.title, notification.message);
 
     // Auto-dismiss after 6 seconds
     Future.delayed(const Duration(seconds: 6), () {
