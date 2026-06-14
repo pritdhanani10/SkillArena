@@ -50,6 +50,8 @@ class AppState extends ChangeNotifier {
   int _quizTimeLimit = 20;
   String _interviewRigor = 'Standard';
   String _adFrequency = 'Standard';
+  bool _mpinEnabled = false;
+  String _mpinValue = '';
 
   // Getters
   bool get soundEffectsEnabled => _soundEffectsEnabled;
@@ -58,9 +60,14 @@ class AppState extends ChangeNotifier {
   int get quizTimeLimit => _quizTimeLimit;
   String get interviewRigor => _interviewRigor;
   String get adFrequency => _adFrequency;
+  bool get mpinEnabled => _mpinEnabled;
+  String get mpinValue => _mpinValue;
 
   // Logs for visual Firebase DB simulation
   final List<String> _dbSyncLogs = [];
+  
+  // Persistent user history logs
+  List<Map<String, dynamic>> _historyLogs = [];
 
   // Getters
   String get uid => _uid;
@@ -99,6 +106,7 @@ class AppState extends ChangeNotifier {
   List<String> get unlockedBadges => _unlockedBadges;
   List<Map<String, dynamic>> get savedResumes => _savedResumes;
   List<String> get dbSyncLogs => _dbSyncLogs.reversed.toList();
+  List<Map<String, dynamic>> get historyLogs => _historyLogs;
 
   AppState(this._prefs) {
     _initPrefs();
@@ -123,6 +131,8 @@ class AppState extends ChangeNotifier {
     _quizTimeLimit = _prefs.getInt('quizTimeLimit') ?? 20;
     _interviewRigor = _prefs.getString('interviewRigor') ?? 'Standard';
     _adFrequency = _prefs.getString('adFrequency') ?? 'Standard';
+    _mpinEnabled = _prefs.getBool('mpinEnabled') ?? false;
+    _mpinValue = _prefs.getString('mpinValue') ?? '';
 
     _completedQuizCount = _prefs.getInt('completedQuizCount') ?? 8;
     _totalAnswersCorrect = _prefs.getInt('totalAnswersCorrect') ?? 32;
@@ -142,6 +152,13 @@ class AppState extends ChangeNotifier {
       _savedResumes = List<Map<String, dynamic>>.from(json.decode(resumesJson));
     } catch (_) {
       _savedResumes = [];
+    }
+
+    final historyJson = _prefs.getString('historyLogs') ?? '[]';
+    try {
+      _historyLogs = List<Map<String, dynamic>>.from(json.decode(historyJson));
+    } catch (_) {
+      _historyLogs = [];
     }
 
     _checkStreakReset();
@@ -224,10 +241,24 @@ class AppState extends ChangeNotifier {
     
     _logDbSync('User Logged In ($username). Created record path `/users/$uid`.');
     
+    if (FirebaseService.isConfigured) {
+      FirebaseService.fetchUserData(uid).then((data) {
+        if (data != null) {
+          restoreUserData(data);
+        }
+      });
+    }
+
     // Add login badge if not exists
     unlockBadge('Pioneer');
+    await recordHistory(
+      feature: '🔑 Security & Login',
+      details: 'User logged in to SkillArena',
+      result: 'Logged In',
+    );
     if (syncData) {
       _syncWithFirebase();
+      _syncSettingsWithFirebase();
     }
     notifyListeners();
   }
@@ -251,6 +282,7 @@ class AppState extends ChangeNotifier {
     _dailyCompletedMemory = false;
     _unlockedBadges = ['Aptitude Rookie', 'Quick Learner'];
     _savedResumes = [];
+    _historyLogs = [];
     
     await _prefs.setString('uid', '');
     await _prefs.setString('username', _username);
@@ -270,6 +302,7 @@ class AppState extends ChangeNotifier {
     await _prefs.setBool('dailyCompletedMemory', false);
     await _prefs.setStringList('unlockedBadges', _unlockedBadges);
     await _prefs.setString('savedResumes', '[]');
+    await _prefs.setString('historyLogs', '[]');
     
     if (FirebaseService.isConfigured) {
       await FirebaseService.logout();
@@ -315,7 +348,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> recordQuizResult(int correct, int total) async {
+  Future<void> recordQuizResult(int correct, int total, {List<Map<String, dynamic>>? questionsHistory}) async {
     _completedQuizCount += 1;
     _totalAnswersCorrect += correct;
     _totalAnswersSelected += total;
@@ -325,6 +358,12 @@ class AppState extends ChangeNotifier {
     await _prefs.setInt('totalAnswersSelected', _totalAnswersSelected);
 
     _logDbSync('Quiz record submitted. Accuracy is now ${(quizAccuracy * 100).toStringAsFixed(1)}%.');
+    await recordHistory(
+      feature: '🧠 Aptitude Quiz',
+      details: 'Completed quantitative/logical aptitude quiz',
+      result: '$correct/$total correct',
+      questionsHistory: questionsHistory,
+    );
     
     if (_completedQuizCount >= 10) {
       unlockBadge('Quiz Marathoner');
@@ -335,10 +374,16 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> recordCodingProblemSolved() async {
+  Future<void> recordCodingProblemSolved({List<Map<String, dynamic>>? questionsHistory}) async {
     _completedCodingProblems += 1;
     await _prefs.setInt('completedCodingProblems', _completedCodingProblems);
     _logDbSync('Coding Problem Solved. Path `/users/$_uid/stats/coding`: $_completedCodingProblems');
+    await recordHistory(
+      feature: '💻 Coding challenge',
+      details: 'Solved practice coding problem',
+      result: 'Success',
+      questionsHistory: questionsHistory,
+    );
     
     if (_completedCodingProblems >= 5) {
       unlockBadge('DSA Ninja');
@@ -352,6 +397,11 @@ class AppState extends ChangeNotifier {
     _totalGamesWon += 1;
     await _prefs.setInt('totalGamesWon', _totalGamesWon);
     _logDbSync('Multiplayer Game Won. Total games won: $_totalGamesWon');
+    await recordHistory(
+      feature: '🎮 Multiplayer game',
+      details: 'Won multiplayer duel',
+      result: 'Won',
+    );
     
     if (_totalGamesWon >= 15) {
       unlockBadge('Arena Champion');
@@ -377,6 +427,11 @@ class AppState extends ChangeNotifier {
       _dailyCompletedAptitude = true;
       await _prefs.setBool('dailyCompletedAptitude', true);
       _logDbSync('Daily challenge part (Aptitude) completed.');
+      await recordHistory(
+        feature: '🧠 Daily Aptitude',
+        details: 'Completed Daily Aptitude Challenge',
+        result: 'Success',
+      );
       _checkAllDailyCompleted();
       _syncDailyChallenges();
       notifyListeners();
@@ -388,6 +443,11 @@ class AppState extends ChangeNotifier {
       _dailyCompletedCoding = true;
       await _prefs.setBool('dailyCompletedCoding', true);
       _logDbSync('Daily challenge part (Coding) completed.');
+      await recordHistory(
+        feature: '💻 Daily Coding',
+        details: 'Completed Daily Coding Challenge',
+        result: 'Success',
+      );
       _checkAllDailyCompleted();
       _syncDailyChallenges();
       notifyListeners();
@@ -399,6 +459,11 @@ class AppState extends ChangeNotifier {
       _dailyCompletedWord = true;
       await _prefs.setBool('dailyCompletedWord', true);
       _logDbSync('Daily challenge part (Word Puzzle) completed.');
+      await recordHistory(
+        feature: '🔤 Daily Word Puzzle',
+        details: 'Completed Daily Word Search Challenge',
+        result: 'Success',
+      );
       _checkAllDailyCompleted();
       _syncDailyChallenges();
       notifyListeners();
@@ -410,6 +475,11 @@ class AppState extends ChangeNotifier {
       _dailyCompletedMemory = true;
       await _prefs.setBool('dailyCompletedMemory', true);
       _logDbSync('Daily challenge part (Brain Game) completed.');
+      await recordHistory(
+        feature: '🎯 Daily Memory Match',
+        details: 'Completed Daily Memory Match Challenge',
+        result: 'Success',
+      );
       _checkAllDailyCompleted();
       _syncDailyChallenges();
       notifyListeners();
@@ -446,6 +516,11 @@ class AppState extends ChangeNotifier {
     _savedResumes.add(localResume);
     await _prefs.setString('savedResumes', json.encode(_savedResumes));
     _logDbSync('Saved Resume: ${resume['name']}. Path `/users/$_uid/resumes`');
+    await recordHistory(
+      feature: '📝 Resume Builder',
+      details: 'Created and saved resume: ${resume['name']}',
+      result: 'Saved',
+    );
     notifyListeners();
   }
 
@@ -456,6 +531,11 @@ class AppState extends ChangeNotifier {
       _savedResumes.removeAt(index);
       await _prefs.setString('savedResumes', json.encode(_savedResumes));
       _logDbSync('Deleted Resume: $name. Path `/users/$_uid/resumes`');
+      await recordHistory(
+        feature: '📝 Resume Builder',
+        details: 'Deleted resume profile: $name',
+        result: 'Deleted',
+      );
       if (FirebaseService.isConfigured && _isLoggedIn && key != null) {
         FirebaseService.removeResume(_uid, key);
       }
@@ -476,6 +556,7 @@ class AppState extends ChangeNotifier {
     _isPremium = false;
     await _prefs.setBool('isPremium', false);
     _logDbSync('Premium subscription cancelled. Returning to free membership.');
+    _syncWithFirebase();
     notifyListeners();
   }
 
@@ -491,6 +572,7 @@ class AppState extends ChangeNotifier {
     _soundEffectsEnabled = value;
     await _prefs.setBool('soundEffectsEnabled', value);
     _logDbSync('Sound effects toggled: $value.');
+    _syncSettingsWithFirebase();
     notifyListeners();
   }
 
@@ -498,6 +580,7 @@ class AppState extends ChangeNotifier {
     _hapticsEnabled = value;
     await _prefs.setBool('hapticsEnabled', value);
     _logDbSync('Haptics simulation toggled: $value.');
+    _syncSettingsWithFirebase();
     notifyListeners();
   }
 
@@ -507,6 +590,7 @@ class AppState extends ChangeNotifier {
     _logDbSync('Live Cloud Sync toggled: $value.');
     if (value) {
       _syncWithFirebase();
+      _syncSettingsWithFirebase();
     }
     notifyListeners();
   }
@@ -515,6 +599,7 @@ class AppState extends ChangeNotifier {
     _quizTimeLimit = value;
     await _prefs.setInt('quizTimeLimit', value);
     _logDbSync('Quiz time limit set to $value seconds.');
+    _syncSettingsWithFirebase();
     notifyListeners();
   }
 
@@ -522,6 +607,7 @@ class AppState extends ChangeNotifier {
     _interviewRigor = value;
     await _prefs.setString('interviewRigor', value);
     _logDbSync('Mock Interview rigor set to $value.');
+    _syncSettingsWithFirebase();
     notifyListeners();
   }
 
@@ -529,6 +615,37 @@ class AppState extends ChangeNotifier {
     _adFrequency = value;
     await _prefs.setString('adFrequency', value);
     _logDbSync('Simulated ad frequency set to $value.');
+    _syncSettingsWithFirebase();
+    notifyListeners();
+  }
+
+  Future<void> enableMpin(String pin) async {
+    _mpinValue = pin;
+    _mpinEnabled = true;
+    await _prefs.setString('mpinValue', pin);
+    await _prefs.setBool('mpinEnabled', true);
+    _logDbSync('MPIN Security Lock enabled successfully.');
+    await recordHistory(
+      feature: '🔐 MPIN Security',
+      details: 'Enabled MPIN security code lock',
+      result: 'Enabled',
+    );
+    _syncSettingsWithFirebase();
+    notifyListeners();
+  }
+
+  Future<void> disableMpin() async {
+    _mpinValue = '';
+    _mpinEnabled = false;
+    await _prefs.setString('mpinValue', '');
+    await _prefs.setBool('mpinEnabled', false);
+    _logDbSync('MPIN Security Lock disabled.');
+    await recordHistory(
+      feature: '🔐 MPIN Security',
+      details: 'Disabled MPIN security code lock',
+      result: 'Disabled',
+    );
+    _syncSettingsWithFirebase();
     notifyListeners();
   }
 
@@ -638,6 +755,30 @@ class AppState extends ChangeNotifier {
         await _prefs.setBool('dailyCompletedMemory', _dailyCompletedMemory);
       }
     }
+
+    // settings
+    if (data.containsKey('settings')) {
+      final settings = data['settings'];
+      if (settings is Map) {
+        _soundEffectsEnabled = settings['soundEffectsEnabled'] ?? _soundEffectsEnabled;
+        _hapticsEnabled = settings['hapticsEnabled'] ?? _hapticsEnabled;
+        _liveSyncEnabled = settings['liveSyncEnabled'] ?? _liveSyncEnabled;
+        _quizTimeLimit = settings['quizTimeLimit'] ?? _quizTimeLimit;
+        _interviewRigor = settings['interviewRigor'] ?? _interviewRigor;
+        _adFrequency = settings['adFrequency'] ?? _adFrequency;
+        _mpinEnabled = settings['mpinEnabled'] ?? _mpinEnabled;
+        _mpinValue = settings['mpinValue'] ?? _mpinValue;
+        
+        await _prefs.setBool('soundEffectsEnabled', _soundEffectsEnabled);
+        await _prefs.setBool('hapticsEnabled', _hapticsEnabled);
+        await _prefs.setBool('liveSyncEnabled', _liveSyncEnabled);
+        await _prefs.setInt('quizTimeLimit', _quizTimeLimit);
+        await _prefs.setString('interviewRigor', _interviewRigor);
+        await _prefs.setString('adFrequency', _adFrequency);
+        await _prefs.setBool('mpinEnabled', _mpinEnabled);
+        await _prefs.setString('mpinValue', _mpinValue);
+      }
+    }
     
     // resumes
     if (data.containsKey('resumes')) {
@@ -660,6 +801,17 @@ class AppState extends ChangeNotifier {
       }
       _savedResumes = parsedResumes;
       await _prefs.setString('savedResumes', json.encode(_savedResumes));
+    }
+
+    // history
+    if (data.containsKey('history')) {
+      final historyVal = data['history'];
+      if (historyVal is List) {
+        _historyLogs = List<Map<String, dynamic>>.from(
+          historyVal.map((e) => Map<String, dynamic>.from(e))
+        );
+        await _prefs.setString('historyLogs', json.encode(_historyLogs));
+      }
     }
     
     _logDbSync('Restored user data successfully from Firebase Cloud.');
@@ -690,6 +842,7 @@ class AppState extends ChangeNotifier {
         _uid,
         _unlockedBadges,
       );
+      FirebaseService.syncUserHistory(_uid, _historyLogs);
     }
   }
 
@@ -712,5 +865,48 @@ class AppState extends ChangeNotifier {
     _testNotificationTriggered = true;
     notifyListeners();
     _testNotificationTriggered = false;
+  }
+
+  // Real Persistence History & Settings Syncer Methods
+  Future<void> recordHistory({
+    required String feature,
+    required String details,
+    required String result,
+    List<Map<String, dynamic>>? questionsHistory,
+  }) async {
+    final historyItem = {
+      'feature': feature,
+      'details': details,
+      'result': result,
+      'date': DateTime.now().toIso8601String(),
+      if (questionsHistory != null) 'questions': questionsHistory,
+    };
+    
+    _historyLogs.insert(0, historyItem);
+    if (_historyLogs.length > 50) {
+      _historyLogs.removeLast();
+    }
+    await _prefs.setString('historyLogs', json.encode(_historyLogs));
+    _logDbSync('Activity recorded: $feature - $details ($result)');
+    
+    if (_liveSyncEnabled && FirebaseService.isConfigured && _isLoggedIn) {
+      FirebaseService.syncUserHistory(_uid, _historyLogs);
+    }
+    notifyListeners();
+  }
+
+  void _syncSettingsWithFirebase() {
+    if (_liveSyncEnabled && FirebaseService.isConfigured && _isLoggedIn) {
+      FirebaseService.syncUserSettings(_uid, {
+        'soundEffectsEnabled': _soundEffectsEnabled,
+        'hapticsEnabled': _hapticsEnabled,
+        'liveSyncEnabled': _liveSyncEnabled,
+        'quizTimeLimit': _quizTimeLimit,
+        'interviewRigor': _interviewRigor,
+        'adFrequency': _adFrequency,
+        'mpinEnabled': _mpinEnabled,
+        'mpinValue': _mpinValue,
+      });
+    }
   }
 }

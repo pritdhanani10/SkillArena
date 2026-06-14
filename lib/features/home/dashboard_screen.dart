@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'home_tab.dart';
 import '../leaderboard/leaderboard_tab.dart';
@@ -123,8 +125,14 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     });
     _notificationController.forward();
 
-    // Trigger native browser notification on web platforms (compile-safe)
-    showWebNotification(notification.title, notification.message);
+    // Trigger physical haptic feedback if enabled in settings
+    final appState = Provider.of<AppState>(context, listen: false);
+    if (appState.hapticsEnabled) {
+      HapticFeedback.lightImpact();
+    }
+
+    // Trigger native system notification drawer pop-ups (compile-safe across web/mobile)
+    showSystemNotification(notification.title, notification.message);
 
     // Auto-dismiss after 6 seconds
     Future.delayed(const Duration(seconds: 6), () {
@@ -144,112 +152,193 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     if (_activeNotification == null) return const SizedBox.shrink();
     final n = _activeNotification!;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.surface.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: n.color.withOpacity(0.4), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: n.color.withOpacity(0.18),
-            blurRadius: 16,
-            spreadRadius: 1,
-            offset: const Offset(0, 4),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(22),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+          decoration: BoxDecoration(
+            color: AppColors.surface.withOpacity(0.82),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: n.color.withOpacity(0.35), width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.35),
+                blurRadius: 24,
+                spreadRadius: 2,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          ScaleTransition(
-            scale: Tween<double>(begin: 0.9, end: 1.12).animate(
-              CurvedAnimation(
-                parent: _iconPulseController,
-                curve: Curves.easeInOut,
-              ),
-            ),
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: n.color.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                n.icon,
-                color: n.color,
-                size: 20,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  n.title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header Row: App Identity & Time (mimicking native OS notifications)
+              Row(
+                children: [
+                  Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: n.color.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: n.color.withOpacity(0.3), width: 0.5),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        n.icon,
+                        size: 10,
+                        color: n.color,
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  n.message,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.85),
-                    height: 1.3,
+                  const SizedBox(width: 8),
+                  const Text(
+                    "SKILLARENA",
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white70,
+                      letterSpacing: 1.5,
+                    ),
                   ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    "•",
+                    style: TextStyle(fontSize: 10, color: Colors.white38),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    "now",
+                    style: TextStyle(fontSize: 10, color: Colors.white54),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: Icon(Icons.close, color: Colors.white.withOpacity(0.4), size: 14),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      _notificationController.reverse().then((_) {
+                        if (mounted) {
+                          setState(() {
+                            _activeNotification = null;
+                          });
+                        }
+                      });
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              
+              // Body Row: Title, Message and Interactive Action Button
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Icon wrapper with pulsing animation
+                  ScaleTransition(
+                    scale: Tween<double>(begin: 0.95, end: 1.1).animate(
+                      CurvedAnimation(
+                        parent: _iconPulseController,
+                        curve: Curves.easeInOut,
+                      ),
+                    ),
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            n.color.withOpacity(0.25),
+                            n.color.withOpacity(0.05),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: n.color.withOpacity(0.3), width: 1),
+                      ),
+                      child: Icon(
+                        n.icon,
+                        color: n.color,
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  
+                  // Message Content
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          n.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.white,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          n.message,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.85),
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  
+                  // Action button for Streak warning
+                  if (n.isWarning)
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: n.color.withOpacity(0.2),
+                        foregroundColor: n.color,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () {
+                        _notificationController.reverse().then((_) {
+                          if (mounted) {
+                            setState(() {
+                              _activeNotification = null;
+                              _currentIndex = 1; // Open Challenges Tab
+                            });
+                          }
+                        });
+                      },
+                      child: const Text(
+                        "Play",
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 0.5),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              
+              // Mobile Tray Pull-down Handle Bar
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(2),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          if (n.isWarning)
-            TextButton(
-              style: TextButton.styleFrom(
-                backgroundColor: n.color.withOpacity(0.15),
-                foregroundColor: n.color,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              onPressed: () {
-                _notificationController.reverse().then((_) {
-                  if (mounted) {
-                    setState(() {
-                      _activeNotification = null;
-                      _currentIndex = 1; // Direct to Challenges tab
-                    });
-                  }
-                });
-              },
-              child: const Text(
-                "Play",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-              ),
-            ),
-          IconButton(
-            icon: Icon(Icons.close, color: Colors.white.withOpacity(0.5), size: 16),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            onPressed: () {
-              _notificationController.reverse().then((_) {
-                if (mounted) {
-                  setState(() {
-                    _activeNotification = null;
-                  });
-                }
-              });
-            },
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -360,7 +449,21 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
               child: SafeArea(
                 child: SlideTransition(
                   position: _notificationOffsetAnimation,
-                  child: _buildNotificationWidget(),
+                  child: Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 450),
+                      child: Dismissible(
+                        key: UniqueKey(),
+                        direction: DismissDirection.up,
+                        onDismissed: (direction) {
+                          setState(() {
+                            _activeNotification = null;
+                          });
+                        },
+                        child: _buildNotificationWidget(),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),

@@ -4,6 +4,8 @@ import 'package:confetti/confetti.dart';
 import '../../core/theme/theme.dart';
 import '../../core/services/app_state.dart';
 import '../../shared/widgets/mock_ad_widgets.dart';
+import '../../core/services/dynamic_data_service.dart';
+import '../../shared/widgets/premium_data_loader.dart';
 
 class MemoryCardsScreen extends StatefulWidget {
   const MemoryCardsScreen({super.key});
@@ -13,7 +15,7 @@ class MemoryCardsScreen extends StatefulWidget {
 }
 
 class _MemoryCardsScreenState extends State<MemoryCardsScreen> {
-  final List<String> _emojis = ["🍎", "🍎", "🍌", "🍌", "🍉", "🍉", "🍇", "🍇", "🍓", "🍓", "🍒", "🍒"];
+  late List<String> _emojis;
   late List<bool> _cardFlipped;
   late List<bool> _cardMatched;
   
@@ -25,16 +27,29 @@ class _MemoryCardsScreenState extends State<MemoryCardsScreen> {
   late ConfettiController _confettiController;
   bool _isGameOver = false;
 
+  late Future<List<String>> _emojisFuture;
+  late List<String> _loadedEmojis;
+
   @override
   void initState() {
     super.initState();
     _confettiController = ConfettiController(duration: const Duration(seconds: 3));
-    _resetGame();
+    _emojisFuture = DynamicDataService.getMemoryCardEmojis().then((emojis) {
+      if (mounted) {
+        _loadedEmojis = emojis;
+        _initializeGame(emojis);
+      }
+      return emojis;
+    });
   }
 
-  void _resetGame() {
+  void _initializeGame(List<String> loadedEmojis) {
     setState(() {
+      final uniqueList = List<String>.from(loadedEmojis)..shuffle();
+      final selected = uniqueList.take(6).toList();
+      _emojis = [...selected, ...selected];
       _emojis.shuffle();
+
       _cardFlipped = List.generate(12, (_) => false);
       _cardMatched = List.generate(12, (_) => false);
       _firstSelectedIndex = null;
@@ -43,6 +58,10 @@ class _MemoryCardsScreenState extends State<MemoryCardsScreen> {
       _busy = false;
       _isGameOver = false;
     });
+  }
+
+  void _resetGame() {
+    _initializeGame(_loadedEmojis);
   }
 
   void _onCardTapped(int index) async {
@@ -123,7 +142,11 @@ class _MemoryCardsScreenState extends State<MemoryCardsScreen> {
           )
         ],
       ),
-      body: Stack(
+      body: PremiumDataLoader<List<String>>(
+        loader: () => _emojisFuture,
+        loadingText: "Initializing Card Grid...",
+        builder: (context, _) {
+          return Stack(
         alignment: Alignment.center,
         children: [
           Padding(
@@ -275,7 +298,9 @@ class _MemoryCardsScreenState extends State<MemoryCardsScreen> {
             ),
           )
         ],
-      ),
-    );
+      );
+    },
+  ),
+);
   }
 }

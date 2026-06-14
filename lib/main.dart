@@ -5,9 +5,11 @@ import 'core/theme/theme.dart';
 import 'core/routes/routes.dart';
 import 'core/services/app_state.dart';
 import 'core/services/firebase_service.dart';
+import 'core/services/notification_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeAppNotifications();
   await FirebaseService.initialize();
   final prefs = await SharedPreferences.getInstance();
   runApp(MyApp(prefs: prefs));

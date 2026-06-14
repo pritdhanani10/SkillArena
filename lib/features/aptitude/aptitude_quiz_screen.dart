@@ -5,21 +5,9 @@ import 'package:confetti/confetti.dart';
 import '../../core/theme/theme.dart';
 import '../../core/services/app_state.dart';
 import '../../shared/widgets/mock_ad_widgets.dart';
-
-class AptitudeQuestion {
-  final String text;
-  final List<String> options;
-  final int correctIndex;
-  final String explanation;
-
-  const AptitudeQuestion({
-    required this.text,
-    required this.options,
-    required this.correctIndex,
-    required this.explanation,
-  });
-}
-
+import '../../core/models/feature_models.dart';
+import '../../core/services/dynamic_data_service.dart';
+import '../../shared/widgets/premium_data_loader.dart';
 class AptitudeQuizScreen extends StatefulWidget {
   final String domain;
   final String topic;
@@ -42,6 +30,7 @@ class _AptitudeQuizScreenState extends State<AptitudeQuizScreen> {
   int? _selectedOptionIndex;
   bool _isAnswered = false;
   int _score = 0;
+  List<int> _userSelectedAnswers = [];
 
   // Timers
   Timer? _timer;
@@ -58,91 +47,22 @@ class _AptitudeQuizScreenState extends State<AptitudeQuizScreen> {
   // Game over state
   bool _isQuizOver = false;
 
+  late Future<List<AptitudeQuestion>> _questionsFuture;
+
   @override
   void initState() {
     super.initState();
     _confettiController = ConfettiController(duration: const Duration(seconds: 3));
-    _loadQuestions();
-    _startModeActivities();
-  }
-
-  void _loadQuestions() {
-    final allQuestions = {
-      'Percentage': [
-        const AptitudeQuestion(
-          text: "If 20% of a number is 120, then 120% of that number is:",
-          options: ["480", "720", "360", "240"],
-          correctIndex: 1,
-          explanation: "Let the number be x. 20% of x = 120 => (20/100)*x = 120 => x = 600. Therefore, 120% of x = (120/100)*600 = 720.",
-        ),
-        const AptitudeQuestion(
-          text: "A student has to secure 40% marks to pass. He gets 178 marks and fails by 22 marks. The maximum marks are:",
-          options: ["500", "400", "600", "800"],
-          correctIndex: 0,
-          explanation: "Passing marks = 178 + 22 = 200. Since 40% of maximum marks = 200, Max Marks = 200 * (100/40) = 500.",
-        ),
-        const AptitudeQuestion(
-          text: "If the price of a book is first decreased by 25% and then increased by 20%, the net change in the price will be:",
-          options: ["No change", "10% decrease", "5% decrease", "8% increase"],
-          correctIndex: 1,
-          explanation: "Let original price be 100. Decreased by 25% = 75. Increased by 20% = 75 + (20% of 75) = 75 + 15 = 90. Net change = 100 to 90 (10% decrease).",
-        ),
-      ],
-      'Profit Loss': [
-        const AptitudeQuestion(
-          text: "A shopkeeper sells a refrigerator for ₹22,000 at a profit of 10%. If he sells it for ₹18,000, what is his loss percentage?",
-          options: ["5%", "8%", "10%", "12%"],
-          correctIndex: 2,
-          explanation: "Selling Price (SP) = ₹22,000. Profit = 10%. Cost Price (CP) = SP * 100 / (100+Profit%) = 22000 * 100/110 = ₹20,000. New SP = ₹18,000. Loss = 20000 - 18000 = 2000. Loss% = (2000/20000)*100 = 10%.",
-        ),
-        const AptitudeQuestion(
-          text: "If cost price of 15 articles is equal to the selling price of 12 articles, find the gain percentage.",
-          options: ["20%", "25%", "30%", "15%"],
-          correctIndex: 1,
-          explanation: "Let CP of each article be ₹1. CP of 15 articles = ₹15. SP of 12 articles = CP of 15 articles = ₹15. CP of 12 articles = ₹12. Gain = SP - CP = 15 - 12 = 3. Gain% = (3/12)*100 = 25%.",
-        ),
-      ],
-      'Time Work': [
-        const AptitudeQuestion(
-          text: "A can do a piece of work in 10 days and B in 15 days. Working together, in how many days can they complete the work?",
-          options: ["5 days", "6 days", "8 days", "7 days"],
-          correctIndex: 1,
-          explanation: "A's 1 day work = 1/10. B's 1 day work = 1/15. Together 1 day work = 1/10 + 1/15 = 5/30 = 1/6. Hence, they complete in 6 days.",
-        ),
-      ],
-      'Blood Relations': [
-        const AptitudeQuestion(
-          text: "Pointing to a photograph of a boy, Suresh said, 'He is the son of the only son of my mother.' How Suresh is related to that boy?",
-          options: ["Brother", "Uncle", "Father", "Cousin"],
-          correctIndex: 2,
-          explanation: "The 'only son of Suresh's mother' is Suresh himself. Therefore, the boy in the photo is the son of Suresh. Suresh is the father.",
-        ),
-      ],
-      'Synonyms': [
-        const AptitudeQuestion(
-          text: "Choose the correct synonym of the word: DILIGENT",
-          options: ["Lazy", "Intelligent", "Hard-working", "Clever"],
-          correctIndex: 2,
-          explanation: "Diligent means having or showing care and conscientiousness in one's work. Synonym is hard-working.",
-        ),
-      ],
-    };
-
-    // Fallback if topic is empty or not in dictionary
-    _questions = allQuestions[widget.topic] ?? [
-      AptitudeQuestion(
-        text: "Solve this general aptitude puzzle: What is next in sequence 2, 4, 8, 16, ...?",
-        options: const ["32", "24", "64", "48"],
-        correctIndex: 0,
-        explanation: "The sequence doubles each term. Next is 16 * 2 = 32.",
-      ),
-      AptitudeQuestion(
-        text: "Under ${widget.topic}, which of the following is correct?",
-        options: const ["Option A", "Option B", "Option C", "Option D"],
-        correctIndex: 1,
-        explanation: "Option B is correct for this general template.",
-      )
-    ];
+    _questionsFuture = DynamicDataService.getAptitudeQuestions(widget.topic).then((questions) {
+      if (mounted) {
+        setState(() {
+          _questions = questions;
+          _userSelectedAnswers = List<int>.filled(questions.length, -1);
+        });
+        _startModeActivities();
+      }
+      return questions;
+    });
   }
 
   void _startModeActivities() {
@@ -154,26 +74,27 @@ class _AptitudeQuizScreenState extends State<AptitudeQuizScreen> {
   }
 
   void _startTimer() {
-    final appState = Provider.of<AppState>(context, listen: false);
-    _secondsRemaining = appState.quizTimeLimit;
     _timer?.cancel();
+    setState(() {
+      _secondsRemaining = 20;
+    });
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_secondsRemaining > 1) {
+      if (_secondsRemaining > 0) {
         setState(() {
           _secondsRemaining--;
         });
       } else {
-        _timer?.cancel();
+        timer.cancel();
         _onTimeExpired();
       }
     });
   }
 
   void _startBattleBot() {
+    _botTimer?.cancel();
     _botProgress = 0.0;
     _botStatus = "Rival is thinking...";
-    _botTimer?.cancel();
-    _botTimer = Timer.periodic(const Duration(milliseconds: 200), (timer) {
+    _botTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (_isQuizOver) {
         timer.cancel();
         return;
@@ -193,6 +114,7 @@ class _AptitudeQuizScreenState extends State<AptitudeQuizScreen> {
   void _onTimeExpired() {
     setState(() {
       _selectedOptionIndex = -1; // timed out
+      _userSelectedAnswers[_currentQuestionIndex] = -1;
       _isAnswered = true;
     });
   }
@@ -202,6 +124,7 @@ class _AptitudeQuizScreenState extends State<AptitudeQuizScreen> {
     _timer?.cancel();
     setState(() {
       _selectedOptionIndex = index;
+      _userSelectedAnswers[_currentQuestionIndex] = index;
       _isAnswered = true;
       if (index == _questions[_currentQuestionIndex].correctIndex) {
         _score++;
@@ -234,7 +157,20 @@ class _AptitudeQuizScreenState extends State<AptitudeQuizScreen> {
     // Add XP & Coins
     appState.addXp(20);
     appState.addCoins(10);
-    appState.recordQuizResult(_score, _questions.length);
+
+    // Build the questions review list for detailed history
+    final List<Map<String, dynamic>> questionHistory = [];
+    for (int i = 0; i < _questions.length; i++) {
+      questionHistory.add({
+        'question': _questions[i].text,
+        'options': _questions[i].options,
+        'selected': _userSelectedAnswers[i],
+        'correct': _questions[i].correctIndex,
+        'explanation': _questions[i].explanation,
+      });
+    }
+
+    appState.recordQuizResult(_score, _questions.length, questionsHistory: questionHistory);
 
     // Sync daily challenge
     appState.completeDailyAptitude();
@@ -254,8 +190,6 @@ class _AptitudeQuizScreenState extends State<AptitudeQuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentQuestion = _questions[_currentQuestionIndex];
-
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.topic} (${widget.mode})', style: const TextStyle(fontSize: 16)),
@@ -271,25 +205,33 @@ class _AptitudeQuizScreenState extends State<AptitudeQuizScreen> {
           },
         ),
       ),
-      body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 650),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              _isQuizOver ? _buildScoreCard() : _buildGameplay(currentQuestion),
-              Align(
-                alignment: Alignment.topCenter,
-                child: ConfettiWidget(
-                  confettiController: _confettiController,
-                  blastDirectionality: BlastDirectionality.explosive,
-                  shouldLoop: false,
-                  colors: const [Colors.amber, Colors.lightBlue, Colors.pinkAccent, Colors.tealAccent],
-                ),
-              )
-            ],
-          ),
-        ),
+      body: PremiumDataLoader<List<AptitudeQuestion>>(
+        loader: () => _questionsFuture,
+        loadingText: "Loading Arena Questions...",
+        builder: (context, questions) {
+          _questions = questions;
+          final currentQuestion = _questions[_currentQuestionIndex];
+          return Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 650),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  _isQuizOver ? _buildScoreCard() : _buildGameplay(currentQuestion),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: ConfettiWidget(
+                      confettiController: _confettiController,
+                      blastDirectionality: BlastDirectionality.explosive,
+                      shouldLoop: false,
+                      colors: const [Colors.amber, Colors.lightBlue, Colors.pinkAccent, Colors.tealAccent],
+                    ),
+                  )
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

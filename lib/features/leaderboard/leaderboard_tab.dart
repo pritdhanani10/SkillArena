@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/theme.dart';
 import '../../core/services/app_state.dart';
+import '../../core/services/dynamic_data_service.dart';
+import '../../shared/widgets/premium_data_loader.dart';
 
 class LeaderboardTab extends StatefulWidget {
   const LeaderboardTab({super.key});
@@ -12,25 +14,6 @@ class LeaderboardTab extends StatefulWidget {
 
 class _LeaderboardTabState extends State<LeaderboardTab> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  final List<Map<String, dynamic>> _globalUsers = [
-    {'name': 'Sneha_32', 'xp': 2450, 'coins': 840, 'avatar': '🌸', 'rank': 1},
-    {'name': 'Alex_Dev', 'xp': 2100, 'coins': 690, 'avatar': '⚡', 'rank': 2},
-    {'name': 'CodeMaster', 'xp': 1950, 'coins': 520, 'avatar': '🚀', 'rank': 3},
-    {'name': 'Rahul_K', 'xp': 1200, 'coins': 350, 'avatar': '🥋', 'rank': 4},
-    {'name': 'Amit_Raj', 'xp': 950, 'coins': 280, 'avatar': '🦁', 'rank': 5},
-  ];
-
-  final List<Map<String, dynamic>> _countryUsers = [
-    {'name': 'Sneha_32', 'xp': 2450, 'coins': 840, 'avatar': '🌸', 'rank': 1},
-    {'name': 'CodeMaster', 'xp': 1950, 'coins': 520, 'avatar': '🚀', 'rank': 2},
-    {'name': 'Rahul_K', 'xp': 1200, 'coins': 350, 'avatar': '🥋', 'rank': 3},
-  ];
-
-  final List<Map<String, dynamic>> _friendUsers = [
-    {'name': 'Sneha_32', 'xp': 2450, 'coins': 840, 'avatar': '🌸', 'rank': 1},
-    {'name': 'Rahul_K', 'xp': 1200, 'coins': 350, 'avatar': '🥋', 'rank': 2},
-  ];
 
   @override
   void initState() {
@@ -48,24 +31,6 @@ class _LeaderboardTabState extends State<LeaderboardTab> with SingleTickerProvid
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     
-    // Dynamically inject player into lists based on their current XP
-    final playerMap = {
-      'name': '${appState.username} (You)',
-      'xp': appState.xp,
-      'coins': appState.coins,
-      'avatar': '🎓',
-      'isPlayer': true,
-    };
-
-    final globalList = List<Map<String, dynamic>>.from(_globalUsers)..add(playerMap);
-    globalList.sort((a, b) => (b['xp'] as int).compareTo(a['xp'] as int));
-    
-    final countryList = List<Map<String, dynamic>>.from(_countryUsers)..add(playerMap);
-    countryList.sort((a, b) => (b['xp'] as int).compareTo(a['xp'] as int));
-
-    final friendsList = List<Map<String, dynamic>>.from(_friendUsers)..add(playerMap);
-    friendsList.sort((a, b) => (b['xp'] as int).compareTo(a['xp'] as int));
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("🏆 Leaderboard", style: TextStyle(fontWeight: FontWeight.bold)),
@@ -86,11 +51,42 @@ class _LeaderboardTabState extends State<LeaderboardTab> with SingleTickerProvid
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildLeaderboardList(globalList),
-          _buildLeaderboardList(countryList),
-          _buildLeaderboardList(friendsList),
+          _buildLeaderboardTabContent("Global", appState),
+          _buildLeaderboardTabContent("Country", appState),
+          _buildLeaderboardTabContent("Friends", appState),
         ],
       ),
+    );
+  }
+
+  Widget _buildLeaderboardTabContent(String category, AppState appState) {
+    return PremiumDataLoader<List<Map<String, dynamic>>>(
+      loader: () => DynamicDataService.getLeaderboard(category),
+      loadingText: "Querying $category Rankings...",
+      builder: (context, rawList) {
+        final playerMap = {
+          'name': '${appState.username} (You)',
+          'xp': appState.xp,
+          'coins': appState.coins,
+          'avatar': appState.isPremium ? '👑' : '🎓',
+          'isPlayer': true,
+        };
+
+        // Filter out any duplicate player entries
+        final cleanedList = rawList
+            .where((u) => u['name'] != '${appState.username} (You)' && u['name'] != appState.username)
+            .toList();
+
+        final list = List<Map<String, dynamic>>.from(cleanedList)..add(playerMap);
+        list.sort((a, b) => (b['xp'] as int).compareTo(a['xp'] as int));
+
+        // Re-assign rank indices
+        for (int i = 0; i < list.length; i++) {
+          list[i]['rank'] = i + 1;
+        }
+
+        return _buildLeaderboardList(list);
+      },
     );
   }
 

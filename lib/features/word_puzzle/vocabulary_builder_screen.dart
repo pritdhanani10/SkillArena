@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/theme.dart';
 import '../../core/services/app_state.dart';
+import '../../core/services/dynamic_data_service.dart';
+import '../../shared/widgets/premium_data_loader.dart';
 
 class VocabularyBuilderScreen extends StatefulWidget {
   const VocabularyBuilderScreen({super.key});
@@ -11,30 +13,8 @@ class VocabularyBuilderScreen extends StatefulWidget {
 }
 
 class _VocabularyBuilderScreenState extends State<VocabularyBuilderScreen> {
-  final List<Map<String, String>> _dailyWords = [
-    {
-      'word': 'Perseverance',
-      'meaning': 'Persistence in doing something despite difficulty or delay in achieving success.',
-      'example': 'Preparing for placements requires consistency and perseverance.',
-      'synonyms': 'Persistence, tenacity, determination',
-      'antonyms': 'Apathy, laziness, weakness',
-    },
-    {
-      'word': 'Cognitive',
-      'meaning': 'Relating to, being, or involving conscious intellectual activity (such as thinking, reasoning, or remembering).',
-      'example': 'Brain training games improve cognitive adaptability and reasoning speeds.',
-      'synonyms': 'Mental, intellectual, analytical',
-      'antonyms': 'Physical, visceral',
-    },
-    {
-      'word': 'Optimistic',
-      'meaning': 'Hopeful and confident about the future or the success of something.',
-      'style': 'Positive and forward-looking.',
-      'example': 'Remain optimistic during interview sessions; confidence is key.',
-      'synonyms': 'Hopeful, positive, confident',
-      'antonyms': 'Pessimistic, gloomy',
-    }
-  ];
+  late List<Map<String, String>> _dailyWords;
+  late List<Map<String, dynamic>> _quizQuestions;
 
   int _wordIndex = 0;
   bool _quizMode = false;
@@ -43,18 +23,24 @@ class _VocabularyBuilderScreenState extends State<VocabularyBuilderScreen> {
   bool _quizChecked = false;
   int _quizScore = 0;
 
-  final List<Map<String, dynamic>> _quizQuestions = [
-    {
-      'question': 'Which word matches the definition: "Persistence despite difficulty or delay"?',
-      'options': ['Cognitive', 'Perseverance', 'Optimistic', 'Apathy'],
-      'correct': 1,
-    },
-    {
-      'question': 'What is a direct antonym of "Optimistic"?',
-      'options': ['Pessimistic', 'Hopeful', 'Diligent', 'Tenacious'],
-      'correct': 0,
+  late Future<void> _vocabFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _vocabFuture = _loadVocabData();
+  }
+
+  Future<void> _loadVocabData() async {
+    final words = await DynamicDataService.getDailyWords();
+    final quiz = await DynamicDataService.getVocabularyQuiz();
+    if (mounted) {
+      setState(() {
+        _dailyWords = words;
+        _quizQuestions = quiz;
+      });
     }
-  ];
+  }
 
   void _nextWord() {
     setState(() {
@@ -85,6 +71,11 @@ class _VocabularyBuilderScreenState extends State<VocabularyBuilderScreen> {
       final appState = Provider.of<AppState>(context, listen: false);
       appState.addCoins(10);
       appState.addXp(10);
+      appState.recordHistory(
+        feature: '📖 Vocabulary Builder',
+        details: 'Completed vocabulary retention quiz',
+        result: 'Score: $_quizScore/${_quizQuestions.length}',
+      );
 
       showDialog(
         context: context,
@@ -119,54 +110,59 @@ class _VocabularyBuilderScreenState extends State<VocabularyBuilderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final word = _dailyWords[_wordIndex];
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("📚 Vocabulary Builder"),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            // Mode selector (Daily Word vs Vocabulary Quiz)
-            Row(
+      body: PremiumDataLoader<void>(
+        loader: () => _vocabFuture,
+        loadingText: "Loading Lexicon...",
+        builder: (context, _) {
+          final word = _dailyWords[_wordIndex];
+          return Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
               children: [
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: !_quizMode ? AppColors.primary : AppColors.surface,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                // Mode selector (Daily Word vs Vocabulary Quiz)
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: !_quizMode ? AppColors.primary : AppColors.surface,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: () => setState(() => _quizMode = false),
+                        child: const Text("Daily Words"),
+                      ),
                     ),
-                    onPressed: () => setState(() => _quizMode = false),
-                    child: const Text("Daily Words"),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _quizMode ? AppColors.primary : AppColors.surface,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: () => setState(() => _quizMode = true),
+                        child: const Text("Retention Quiz"),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(height: 24),
+
+                // Content card
                 Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _quizMode ? AppColors.primary : AppColors.surface,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    onPressed: () => setState(() => _quizMode = true),
-                    child: const Text("Retention Quiz"),
-                  ),
+                  child: _quizMode ? _buildQuizView() : _buildWordView(word),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-
-            // Content card
-            Expanded(
-              child: _quizMode ? _buildQuizView() : _buildWordView(word),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

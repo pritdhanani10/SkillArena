@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "666192930154",
+    "firebase_url": "https://skillarena-1eb00-default-rtdb.firebaseio.com",
     "project_id": "skillarena-1eb00",
     "storage_bucket": "skillarena-1eb00.firebasestorage.app"
   },
@@ -15,7 +16,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSy_YOUR_ANDROID_API_KEY_HERE"
+          "current_key": "AIzaSyCQsVjTqquA1mOv8-4glxtH4fe5zibQB2M"
         }
       ],
       "services": {

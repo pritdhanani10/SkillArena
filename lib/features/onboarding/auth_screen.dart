@@ -77,7 +77,14 @@ class _AuthScreenState extends State<AuthScreen> {
           
           final uid = credential.user!.uid;
           // Fetch existing user data
-          final data = await FirebaseService.fetchUserData(uid, rethrowError: true);
+          Map<String, dynamic>? data;
+          bool isOfflineMode = false;
+          try {
+            data = await FirebaseService.fetchUserData(uid, rethrowError: true);
+          } catch (e) {
+            debugPrint("Failed to fetch user data (using offline fallback): $e");
+            isOfflineMode = true;
+          }
           
           String finalUsername = email.split('@')[0];
           if (finalUsername.isNotEmpty) {
@@ -92,14 +99,16 @@ class _AuthScreenState extends State<AuthScreen> {
             await appState.login(uid: uid, username: finalUsername, email: email, syncData: false);
             await appState.restoreUserData(data);
           } else {
-            // First time logging in (or missing database node). Sync current local cache profile.
-            await appState.login(uid: uid, username: finalUsername, email: email, syncData: true);
+            // First time logging in (or missing database node). Sync current local cache profile if online.
+            await appState.login(uid: uid, username: finalUsername, email: email, syncData: !isOfflineMode);
           }
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text("Welcome back, $finalUsername! Sync complete."),
+                content: Text(isOfflineMode
+                    ? "Welcome back, $finalUsername! Running in Offline Mode (local sync active)."
+                    : "Welcome back, $finalUsername! Sync complete."),
                 backgroundColor: AppColors.accentGreen,
               ),
             );

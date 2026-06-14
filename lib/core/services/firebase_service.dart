@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../../firebase_options.dart';
+import 'dynamic_data_service.dart';
 
 class FirebaseService {
   static bool _isConfigured = false;
@@ -30,8 +31,20 @@ class FirebaseService {
       }
       _auth = FirebaseAuth.instance;
       _db = FirebaseFirestore.instance;
+      try {
+        _db!.settings = const Settings(
+          persistenceEnabled: true,
+          cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+        );
+        debugPrint("Firestore offline persistence enabled.");
+      } catch (e) {
+        debugPrint("Failed to set Firestore settings (likely already initialized): $e");
+      }
       _isConfigured = true;
       debugPrint("Firebase Initialized successfully.");
+      
+      // Async seed call in background
+      DynamicDataService.initializeCollectionsIfEmpty();
     } catch (e) {
       _isConfigured = false;
       debugPrint("Firebase connection deferred: Config options not found. Offline replica active. Error: $e");
@@ -75,18 +88,16 @@ class FirebaseService {
   }) async {
     if (!_isConfigured) return;
     try {
-      final ref = _db!.collection('users').doc(userId);
+      final ref = _db!.collection('users').doc(userId).collection('profile').doc('data');
       await ref.set({
-        'profile': {
-          'username': username,
-          'email': email,
-          'xp': xp,
-          'coins': coins,
-          'streak': streak,
-          'isPremium': isPremium,
-          'lastSynced': FieldValue.serverTimestamp(),
-        }
-      }, SetOptions(merge: true));
+        'username': username,
+        'email': email,
+        'xp': xp,
+        'coins': coins,
+        'streak': streak,
+        'isPremium': isPremium,
+        'lastSynced': FieldValue.serverTimestamp(),
+      });
     } catch (e) {
       debugPrint("Firestore Database Error: $e");
     }
@@ -101,17 +112,15 @@ class FirebaseService {
   }) async {
     if (!_isConfigured) return;
     try {
-      final ref = _db!.collection('users').doc(userId);
+      final ref = _db!.collection('users').doc(userId).collection('statistics').doc('data');
       await ref.set({
-        'statistics': {
-          'completedQuizCount': completedQuizCount,
-          'totalAnswersCorrect': totalAnswersCorrect,
-          'totalAnswersSelected': totalAnswersSelected,
-          'completedCodingProblems': completedCodingProblems,
-          'totalGamesWon': totalGamesWon,
-          'lastSynced': FieldValue.serverTimestamp(),
-        }
-      }, SetOptions(merge: true));
+        'completedQuizCount': completedQuizCount,
+        'totalAnswersCorrect': totalAnswersCorrect,
+        'totalAnswersSelected': totalAnswersSelected,
+        'completedCodingProblems': completedCodingProblems,
+        'totalGamesWon': totalGamesWon,
+        'lastSynced': FieldValue.serverTimestamp(),
+      });
     } catch (e) {
       debugPrint("Firestore Database Error: $e");
     }
@@ -120,10 +129,11 @@ class FirebaseService {
   static Future<void> syncUserBadges(String userId, List<String> badges) async {
     if (!_isConfigured) return;
     try {
-      final ref = _db!.collection('users').doc(userId);
+      final ref = _db!.collection('users').doc(userId).collection('badges').doc('data');
       await ref.set({
         'badges': badges,
-      }, SetOptions(merge: true));
+        'lastSynced': FieldValue.serverTimestamp(),
+      });
     } catch (e) {
       debugPrint("Firestore Database Error: $e");
     }
@@ -137,17 +147,15 @@ class FirebaseService {
   }) async {
     if (!_isConfigured) return;
     try {
-      final ref = _db!.collection('users').doc(userId);
+      final ref = _db!.collection('users').doc(userId).collection('daily_challenges').doc('data');
       await ref.set({
-        'daily_challenges': {
-          'aptitude': dailyCompletedAptitude,
-          'coding': dailyCompletedCoding,
-          'word': dailyCompletedWord,
-          'memory': dailyCompletedMemory,
-          'allCompleted': dailyCompletedAptitude && dailyCompletedCoding && dailyCompletedWord && dailyCompletedMemory,
-          'lastSynced': FieldValue.serverTimestamp(),
-        }
-      }, SetOptions(merge: true));
+        'aptitude': dailyCompletedAptitude,
+        'coding': dailyCompletedCoding,
+        'word': dailyCompletedWord,
+        'memory': dailyCompletedMemory,
+        'allCompleted': dailyCompletedAptitude && dailyCompletedCoding && dailyCompletedWord && dailyCompletedMemory,
+        'lastSynced': FieldValue.serverTimestamp(),
+      });
     } catch (e) {
       debugPrint("Firestore Database Error: $e");
     }
@@ -178,32 +186,71 @@ class FirebaseService {
   static Future<Map<String, dynamic>?> fetchUserData(String userId, {bool rethrowError = false}) async {
     if (!_isConfigured) return null;
     try {
-      final profileDoc = await _db!.collection('users').doc(userId).get();
+      final profileFuture = _db!.collection('users').doc(userId).collection('profile').doc('data').get().timeout(const Duration(seconds: 3));
+      final statsFuture = _db!.collection('users').doc(userId).collection('statistics').doc('data').get().timeout(const Duration(seconds: 3));
+      final badgesFuture = _db!.collection('users').doc(userId).collection('badges').doc('data').get().timeout(const Duration(seconds: 3));
+      final settingsFuture = _db!.collection('users').doc(userId).collection('settings').doc('data').get().timeout(const Duration(seconds: 3));
+      final dailyFuture = _db!.collection('users').doc(userId).collection('daily_challenges').doc('data').get().timeout(const Duration(seconds: 3));
+      final historyFuture = _db!.collection('users').doc(userId).collection('history').orderBy('date', descending: true).limit(50).get().timeout(const Duration(seconds: 3));
+      final resumesFuture = _db!.collection('users').doc(userId).collection('resumes').get().timeout(const Duration(seconds: 3));
+
+      final results = await Future.wait([
+        profileFuture,
+        statsFuture,
+        badgesFuture,
+        settingsFuture,
+        dailyFuture,
+        historyFuture,
+        resumesFuture,
+      ]);
+
+      final profileDoc = results[0] as DocumentSnapshot;
+      final statsDoc = results[1] as DocumentSnapshot;
+      final badgesDoc = results[2] as DocumentSnapshot;
+      final settingsDoc = results[3] as DocumentSnapshot;
+      final dailyDoc = results[4] as DocumentSnapshot;
+      final historySnapshot = results[5] as QuerySnapshot;
+      final resumesSnapshot = results[6] as QuerySnapshot;
+
       if (!profileDoc.exists) return null;
 
       final Map<String, dynamic> result = {};
-      final userData = profileDoc.data();
       
-      if (userData != null) {
-        if (userData.containsKey('profile')) {
-          result['profile'] = userData['profile'];
-        }
-        if (userData.containsKey('statistics')) {
-          result['statistics'] = userData['statistics'];
-        }
-        if (userData.containsKey('badges')) {
-          result['badges'] = userData['badges'];
-        }
-        if (userData.containsKey('daily_challenges')) {
-          result['daily_challenges'] = userData['daily_challenges'];
+      // profile
+      result['profile'] = profileDoc.data();
+
+      // statistics
+      if (statsDoc.exists) {
+        result['statistics'] = statsDoc.data();
+      }
+
+      // badges
+      if (badgesDoc.exists && badgesDoc.data() != null) {
+        final data = badgesDoc.data() as Map<String, dynamic>;
+        if (data.containsKey('badges')) {
+          result['badges'] = data['badges'];
         }
       }
 
-      // Fetch resumes
-      final resumesDocs = await _db!.collection('users').doc(userId).collection('resumes').get();
-      if (resumesDocs.docs.isNotEmpty) {
+      // settings
+      if (settingsDoc.exists) {
+        result['settings'] = settingsDoc.data();
+      }
+
+      // daily challenges
+      if (dailyDoc.exists) {
+        result['daily_challenges'] = dailyDoc.data();
+      }
+
+      // history
+      if (historySnapshot.docs.isNotEmpty) {
+        result['history'] = historySnapshot.docs.map((doc) => doc.data()).toList();
+      }
+
+      // resumes
+      if (resumesSnapshot.docs.isNotEmpty) {
         final Map<String, dynamic> resumesMap = {};
-        for (var doc in resumesDocs.docs) {
+        for (var doc in resumesSnapshot.docs) {
           resumesMap[doc.id] = doc.data();
         }
         result['resumes'] = resumesMap;
@@ -214,6 +261,41 @@ class FirebaseService {
       debugPrint("Firestore Database Fetch Error: $e");
       if (rethrowError) rethrow;
       return null;
+    }
+  }
+
+  // Activity History Handlers (Stored in nested subcollection)
+  static Future<void> syncUserHistory(String userId, List<Map<String, dynamic>> historyLogs) async {
+    if (!_isConfigured) return;
+    try {
+      final batch = _db!.batch();
+      for (var log in historyLogs) {
+        if (log.containsKey('date')) {
+          // Use the date timestamp string safely formatted as document ID to prevent duplicate items
+          final docId = log['date'].toString().replaceAll('.', '_').replaceAll(':', '_').replaceAll('/', '_');
+          final ref = _db!.collection('users').doc(userId).collection('history').doc(docId);
+          batch.set(ref, log);
+        }
+      }
+      await batch.commit().timeout(const Duration(seconds: 4));
+      debugPrint("[FirebaseService] History synced successfully inside subcollection.");
+    } catch (e) {
+      debugPrint("[FirebaseService] Firestore History Sync Error: $e");
+    }
+  }
+
+  // App Settings Sync
+  static Future<void> syncUserSettings(String userId, Map<String, dynamic> settings) async {
+    if (!_isConfigured) return;
+    try {
+      final ref = _db!.collection('users').doc(userId).collection('settings').doc('data');
+      await ref.set({
+        ...settings,
+        'lastSynced': FieldValue.serverTimestamp(),
+      });
+      debugPrint("[FirebaseService] Settings synced successfully for user $userId.");
+    } catch (e) {
+      debugPrint("[FirebaseService] Firestore Settings Sync Error: $e");
     }
   }
 }

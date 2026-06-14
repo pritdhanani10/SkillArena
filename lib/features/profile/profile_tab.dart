@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/theme.dart';
 import '../../core/services/app_state.dart';
+import 'history_screen.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
@@ -164,36 +165,61 @@ class ProfileTab extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Database Sync logs console view
-          const Row(
-            children: [
-              Icon(Icons.cloud_sync, color: AppColors.secondary, size: 18),
-              SizedBox(width: 8),
-              Text("Firebase Realtime DB Sync Logs", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-            ],
-          ),
-          const SizedBox(height: 12),
+          // Persistent Activity History Card
           Container(
-            height: 150,
             width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF06070B),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.border),
+            padding: const EdgeInsets.all(16),
+            decoration: AppTheme.glassBox(
+              border: Border.all(color: AppColors.secondary.withOpacity(0.4)),
             ),
-            child: ListView.builder(
-              physics: const BouncingScrollPhysics(),
-              itemCount: appState.dbSyncLogs.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 6.0),
-                  child: Text(
-                    appState.dbSyncLogs[index],
-                    style: const TextStyle(fontFamily: 'Courier New', fontSize: 11, color: AppColors.accentGreen),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.history, color: AppColors.secondary, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          "Activity History",
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    if (appState.historyLogs.isNotEmpty)
+                      Text(
+                        "${appState.historyLogs.length} attempts",
+                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  "Review your quiz scores, questions, correct answers, and detailed explanations for all quantitative test attempts and coding mock practices.",
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.secondary.withOpacity(0.15),
+                    foregroundColor: AppColors.secondary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: const BorderSide(color: AppColors.secondary, width: 1.5),
+                    ),
+                    minimumSize: const Size(double.infinity, 44),
                   ),
-                );
-              },
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const HistoryScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.analytics, size: 18),
+                  label: const Text("View Detailed History", style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 24),

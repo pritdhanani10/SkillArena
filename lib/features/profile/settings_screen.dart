@@ -1,15 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/theme.dart';
 import '../../core/services/app_state.dart';
 import '../../shared/widgets/fade_in_slide.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _isUnlocked = false;
+  String _enteredPin = "";
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+
+    if (appState.mpinEnabled && !_isUnlocked) {
+      return _buildLockScreen(context, appState);
+    }
 
     return Scaffold(
       body: Stack(
@@ -180,6 +193,52 @@ class SettingsScreen extends StatelessWidget {
                             onChanged: (val) {
                               if (val != null) appState.setAdFrequency(val);
                             },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Section: Security Settings
+                      const FadeInSlide(
+                        delay: 380,
+                        child: _SectionHeader(title: "SECURITY CONTROLS"),
+                      ),
+                      const SizedBox(height: 10),
+                      FadeInSlide(
+                        delay: 420,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: AppTheme.glassBox(),
+                          child: Column(
+                            children: [
+                              _buildSwitchSetting(
+                                context: context,
+                                title: "MPIN Lock Protection",
+                                subtitle: "Require 4-digit PIN lock when opening settings",
+                                icon: Icons.security_outlined,
+                                value: appState.mpinEnabled,
+                                onChanged: (val) {
+                                  if (val) {
+                                    _promptToSetMpin(context, appState);
+                                  } else {
+                                    _promptToDisableMpin(context, appState);
+                                  }
+                                },
+                              ),
+                              if (appState.mpinEnabled) ...[
+                                const Divider(height: 24),
+                                _buildActionItem(
+                                  context: context,
+                                  title: "Change Security MPIN",
+                                  subtitle: "Update your settings security PIN code",
+                                  icon: Icons.pin_outlined,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  onTap: () {
+                                    _promptToChangeMpin(context, appState);
+                                  },
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ),
@@ -468,6 +527,468 @@ class SettingsScreen extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildLockScreen(BuildContext context, AppState appState) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text("Enter MPIN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.security, size: 64, color: AppColors.secondary),
+            const SizedBox(height: 16),
+            const Text(
+              "Settings Locked",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "Please enter your 4-digit security PIN",
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 32),
+            
+            // Pin indicators
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(4, (index) {
+                final isFilled = index < _enteredPin.length;
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isFilled ? AppColors.secondary : Colors.transparent,
+                    border: Border.all(
+                      color: isFilled ? AppColors.secondary : AppColors.border,
+                      width: 2,
+                    ),
+                    boxShadow: isFilled
+                        ? [
+                            BoxShadow(
+                              color: AppColors.secondary.withOpacity(0.5),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            )
+                          ]
+                        : null,
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 48),
+            
+            // Keypad
+            Expanded(
+              child: Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 320),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 1.2,
+                    ),
+                    itemCount: 12,
+                    itemBuilder: (context, index) {
+                      if (index == 9) {
+                        // Left bottom: Exit/Cancel
+                        return _buildKeypadButton(
+                          child: const Icon(Icons.close, color: Colors.white54),
+                          onTap: () => Navigator.of(context).pop(),
+                        );
+                      } else if (index == 10) {
+                        // Bottom center: 0
+                        return _buildKeypadButton(
+                          child: const Text("0", style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
+                          onTap: () => _handleKeyPress("0", appState),
+                        );
+                      } else if (index == 11) {
+                        // Right bottom: Backspace
+                        return _buildKeypadButton(
+                          child: const Icon(Icons.backspace_outlined, color: Colors.white),
+                          onTap: _handleBackspace,
+                        );
+                      } else {
+                        // Standard digits 1-9
+                        final digit = (index + 1).toString();
+                        return _buildKeypadButton(
+                          child: Text(digit, style: const TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
+                          onTap: () => _handleKeyPress(digit, appState),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKeypadButton({required Widget child, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: () {
+        if (Provider.of<AppState>(context, listen: false).hapticsEnabled) {
+          HapticFeedback.lightImpact();
+        }
+        onTap();
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border.withOpacity(0.5), width: 1),
+        ),
+        child: Center(child: child),
+      ),
+    );
+  }
+
+  void _handleKeyPress(String value, AppState appState) {
+    if (_enteredPin.length < 4) {
+      setState(() {
+        _enteredPin += value;
+      });
+      
+      if (_enteredPin.length == 4) {
+        // Verify PIN
+        if (_enteredPin == appState.mpinValue) {
+          setState(() {
+            _isUnlocked = true;
+            _enteredPin = "";
+          });
+        } else {
+          // Wrong PIN haptic feedback & reset
+          if (appState.hapticsEnabled) {
+            HapticFeedback.vibrate();
+          }
+          setState(() {
+            _enteredPin = "";
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Incorrect security MPIN! Please try again."),
+              backgroundColor: AppColors.accentPink,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  void _handleBackspace() {
+    if (_enteredPin.isNotEmpty) {
+      setState(() {
+        _enteredPin = _enteredPin.substring(0, _enteredPin.length - 1);
+      });
+    }
+  }
+
+  void _promptToSetMpin(BuildContext context, AppState appState) {
+    final pinController = TextEditingController();
+    final confirmController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: AppColors.border, width: 1.5),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.lock_outline, color: AppColors.secondary),
+              SizedBox(width: 10),
+              Text("Set Security MPIN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Configure a 4-digit numeric code to protect your settings screen.",
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                ),
+                const SizedBox(height: 18),
+                TextFormField(
+                  controller: pinController,
+                  keyboardType: TextInputType.number,
+                  obscureText: true,
+                  maxLength: 4,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: _dialogInputDeco("Enter 4-Digit PIN"),
+                  validator: (val) {
+                    if (val == null || val.length != 4 || int.tryParse(val) == null) {
+                      return "Enter exactly 4 digits";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: confirmController,
+                  keyboardType: TextInputType.number,
+                  obscureText: true,
+                  maxLength: 4,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: _dialogInputDeco("Confirm 4-Digit PIN"),
+                  validator: (val) {
+                    if (val != pinController.text) {
+                      return "PIN codes do not match";
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancel", style: TextStyle(color: AppColors.textMuted)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  appState.enableMpin(pinController.text);
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("MPIN protection enabled successfully!"), backgroundColor: AppColors.accentGreen),
+                  );
+                }
+              },
+              child: const Text("Enable", style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _promptToDisableMpin(BuildContext context, AppState appState) {
+    final pinController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: AppColors.border, width: 1.5),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.lock_open, color: AppColors.accentPink),
+              SizedBox(width: 10),
+              Text("Disable MPIN Lock", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Please enter your current security MPIN to disable lock protection.",
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                ),
+                const SizedBox(height: 18),
+                TextFormField(
+                  controller: pinController,
+                  keyboardType: TextInputType.number,
+                  obscureText: true,
+                  maxLength: 4,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: _dialogInputDeco("Enter Current PIN"),
+                  validator: (val) {
+                    if (val != appState.mpinValue) {
+                      return "Incorrect MPIN";
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancel", style: TextStyle(color: AppColors.textMuted)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.accentPink, foregroundColor: Colors.white),
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  appState.disableMpin();
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("MPIN protection disabled."), backgroundColor: AppColors.accentPink),
+                  );
+                }
+              },
+              child: const Text("Disable", style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _promptToChangeMpin(BuildContext context, AppState appState) {
+    final currentController = TextEditingController();
+    final newController = TextEditingController();
+    final confirmController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: AppColors.border, width: 1.5),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.edit_road_outlined, color: AppColors.secondary),
+              SizedBox(width: 10),
+              Text("Change Security MPIN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: currentController,
+                    keyboardType: TextInputType.number,
+                    obscureText: true,
+                    maxLength: 4,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: _dialogInputDeco("Current MPIN"),
+                    validator: (val) {
+                      if (val != appState.mpinValue) {
+                        return "Incorrect current MPIN";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: newController,
+                    keyboardType: TextInputType.number,
+                    obscureText: true,
+                    maxLength: 4,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: _dialogInputDeco("New 4-Digit PIN"),
+                    validator: (val) {
+                      if (val == null || val.length != 4 || int.tryParse(val) == null) {
+                        return "Enter exactly 4 digits";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: confirmController,
+                    keyboardType: TextInputType.number,
+                    obscureText: true,
+                    maxLength: 4,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: _dialogInputDeco("Confirm New PIN"),
+                    validator: (val) {
+                      if (val != newController.text) {
+                        return "PIN codes do not match";
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancel", style: TextStyle(color: AppColors.textMuted)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  appState.enableMpin(newController.text);
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("MPIN updated successfully!"), backgroundColor: AppColors.accentGreen),
+                  );
+                }
+              },
+              child: const Text("Update", style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  InputDecoration _dialogInputDeco(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+      counterText: "",
+      filled: true,
+      fillColor: AppColors.surfaceLight.withOpacity(0.3),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: AppColors.border, width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: AppColors.accentPink, width: 1),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: AppColors.accentPink, width: 1.5),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     );
   }
 }

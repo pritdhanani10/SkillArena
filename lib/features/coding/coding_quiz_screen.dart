@@ -4,24 +4,9 @@ import 'package:confetti/confetti.dart';
 import '../../core/theme/theme.dart';
 import '../../core/services/app_state.dart';
 import '../../shared/widgets/mock_ad_widgets.dart';
-
-class CodingProblem {
-  final String text;
-  final String codeSnippet;
-  final List<String> options;
-  final int correctIndex;
-  final String explanation;
-  final String expectedOutput;
-
-  const CodingProblem({
-    required this.text,
-    required this.codeSnippet,
-    required this.options,
-    required this.correctIndex,
-    required this.explanation,
-    required this.expectedOutput,
-  });
-}
+import '../../core/models/feature_models.dart';
+import '../../core/services/dynamic_data_service.dart';
+import '../../shared/widgets/premium_data_loader.dart';
 
 class CodingQuizScreen extends StatefulWidget {
   final String topic;
@@ -46,6 +31,7 @@ class _CodingQuizScreenState extends State<CodingQuizScreen> {
   bool _isCompiled = false;
   bool _showCorrect = false;
   int _score = 0;
+  List<int> _userSelectedAnswers = [];
   
   // Console log simulations
   String _consoleOutput = "Ready to compile...";
@@ -54,65 +40,21 @@ class _CodingQuizScreenState extends State<CodingQuizScreen> {
   late ConfettiController _confettiController;
   bool _isGameOver = false;
 
+  late Future<List<CodingProblem>> _problemsFuture;
+
   @override
   void initState() {
     super.initState();
     _confettiController = ConfettiController(duration: const Duration(seconds: 3));
-    _loadProblems();
-  }
-
-  void _loadProblems() {
-    final Map<String, List<CodingProblem>> allProblems = {
-      'Arrays': [
-        const CodingProblem(
-          text: "What will be the output of the following Java program regarding array indexing?",
-          codeSnippet: "public class ArrayTest {\n    public static void main(String[] args) {\n        int[] arr = new int[5];\n        System.out.println(arr[4]);\n    }\n}",
-          options: ["0", "NullPointerException", "ArrayIndexOutOfBoundsException", "Garbage value"],
-          correctIndex: 0,
-          expectedOutput: "0",
-          explanation: "In Java, primitive int arrays are automatically initialized to their default value, which is 0. Since arr has a size of 5, indexes are 0 to 4. Printing arr[4] outputs 0.",
-        ),
-        const CodingProblem(
-          text: "Find the time complexity of the binary search algorithm on a sorted array of size N.",
-          codeSnippet: "int binarySearch(int arr[], int l, int r, int x) {\n    while (l <= r) {\n        int m = l + (r - l) / 2;\n        if (arr[m] == x) return m;\n        if (arr[m] < x) l = m + 1;\n        else r = m - 1;\n    }\n    return -1;\n}",
-          options: ["O(N)", "O(log N)", "O(N log N)", "O(1)"],
-          correctIndex: 1,
-          expectedOutput: "O(log N)",
-          explanation: "Binary search repeatedly divides the search space in half. Hence, the time complexity is logarithmic, or O(log N).",
-        ),
-      ],
-      'Strings': [
-        const CodingProblem(
-          text: "What does the following C++ code return when matching strings?",
-          codeSnippet: "#include <iostream>\n#include <string>\nusing namespace std;\nint main() {\n    string s1 = \"Skill\";\n    string s2 = \"Arena\";\n    cout << (s1 + s2).length();\n    return 0;\n}",
-          options: ["5", "10", "SkillArena", "Compilation error"],
-          correctIndex: 1,
-          expectedOutput: "10",
-          explanation: "s1 has length 5 ('Skill') and s2 has length 5 ('Arena'). Concatenating them (s1 + s2) yields 'SkillArena', which has length 10.",
-        ),
-      ],
-      'SQL': [
-        const CodingProblem(
-          text: "Which SQL clause is used to filter group results after applying an aggregate function?",
-          codeSnippet: "SELECT department, AVG(salary)\nFROM employees\nGROUP BY department\n??? AVG(salary) > 50000;",
-          options: ["WHERE", "HAVING", "FILTER", "ORDER BY"],
-          correctIndex: 1,
-          expectedOutput: "HAVING",
-          explanation: "The HAVING clause was added to SQL because the WHERE keyword could not be used with aggregate functions.",
-        ),
-      ],
-    };
-
-    _problems = allProblems[widget.topic] ?? [
-      CodingProblem(
-        text: "Select the correct option to complete this ${widget.topic} code logic:",
-        codeSnippet: "// Mock challenge block for ${widget.topic}\nvoid runChallenge() {\n    int target = 42;\n    print(target);\n}",
-        options: const ["Compile Success", "Memory Leak", "Stack Overflow", "Syntax Error"],
-        correctIndex: 0,
-        expectedOutput: "42",
-        explanation: "Simple display statement will print the value of target, which is 42.",
-      ),
-    ];
+    _problemsFuture = DynamicDataService.getCodingProblems(widget.topic).then((problems) {
+      if (mounted) {
+        setState(() {
+          _problems = problems;
+          _userSelectedAnswers = List<int>.filled(problems.length, -1);
+        });
+      }
+      return problems;
+    });
   }
 
   void _compileAndTest() async {
@@ -136,6 +78,7 @@ class _CodingQuizScreenState extends State<CodingQuizScreen> {
     setState(() {
       _isCompiling = false;
       _isCompiled = true;
+      _userSelectedAnswers[_currentIndex] = _selectedIdx!;
       if (isCorrect) {
         _score++;
         _showCorrect = true;
@@ -168,7 +111,21 @@ class _CodingQuizScreenState extends State<CodingQuizScreen> {
     final appState = Provider.of<AppState>(context, listen: false);
     appState.addXp(30);
     appState.addCoins(15);
-    appState.recordCodingProblemSolved();
+
+    // Build the detailed coding problem results history
+    final List<Map<String, dynamic>> problemsHistory = [];
+    for (int i = 0; i < _problems.length; i++) {
+      problemsHistory.add({
+        'question': _problems[i].text,
+        'codeSnippet': _problems[i].codeSnippet,
+        'options': _problems[i].options,
+        'selected': _userSelectedAnswers[i],
+        'correct': _problems[i].correctIndex,
+        'explanation': _problems[i].explanation,
+      });
+    }
+
+    appState.recordCodingProblemSolved(questionsHistory: problemsHistory);
     appState.completeDailyCoding();
 
     if (_score == _problems.length) {
@@ -184,8 +141,6 @@ class _CodingQuizScreenState extends State<CodingQuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final problem = _problems[_currentIndex];
-
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.topic} - Level ${widget.level}', style: const TextStyle(fontSize: 14)),
@@ -200,25 +155,33 @@ class _CodingQuizScreenState extends State<CodingQuizScreen> {
           },
         ),
       ),
-      body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 650),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              _isGameOver ? _buildScoreCard() : _buildGameplay(problem),
-              Align(
-                alignment: Alignment.topCenter,
-                child: ConfettiWidget(
-                  confettiController: _confettiController,
-                  blastDirectionality: BlastDirectionality.explosive,
-                  shouldLoop: false,
-                  colors: const [Colors.amber, Colors.cyan, Colors.purple, Colors.teal],
-                ),
-              )
-            ],
-          ),
-        ),
+      body: PremiumDataLoader<List<CodingProblem>>(
+        loader: () => _problemsFuture,
+        loadingText: "Compiling Arena Challenges...",
+        builder: (context, problems) {
+          _problems = problems;
+          final problem = _problems[_currentIndex];
+          return Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 650),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  _isGameOver ? _buildScoreCard() : _buildGameplay(problem),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: ConfettiWidget(
+                      confettiController: _confettiController,
+                      blastDirectionality: BlastDirectionality.explosive,
+                      shouldLoop: false,
+                      colors: const [Colors.amber, Colors.cyan, Colors.purple, Colors.teal],
+                    ),
+                  )
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
