@@ -82,6 +82,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
+                      // Section: Visual & Preference Styling
+                      const FadeInSlide(
+                        delay: 50,
+                        child: _SectionHeader(title: "VISUALS & PREFERENCES"),
+                      ),
+                      const SizedBox(height: 10),
+                      FadeInSlide(
+                        delay: 80,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: AppTheme.glassBox(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSwitchSetting(
+                                context: context,
+                                title: "Dark Mode Theme",
+                                subtitle: "Toggle high-contrast dark vs clean light interface",
+                                icon: appState.isDarkMode ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+                                value: appState.isDarkMode,
+                                onChanged: (val) => appState.toggleDarkMode(val),
+                              ),
+                              const Divider(height: 24),
+                              const Text(
+                                "Accent Styling Palette",
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                              const SizedBox(height: 10),
+                              GridView.count(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                crossAxisCount: 4,
+                                crossAxisSpacing: 8,
+                                mainAxisSpacing: 8,
+                                childAspectRatio: 1.15,
+                                children: [
+                                  _buildThemeOption(context, appState, 'cyberpunk', 'Cyberpunk', [const Color(0xFF7C3AED), const Color(0xFF06B6D4)]),
+                                  _buildThemeOption(context, appState, 'emerald', 'Forest', [const Color(0xFF10B981), const Color(0xFF34D399)]),
+                                  _buildThemeOption(context, appState, 'sunset', 'Synthwave', [const Color(0xFFEC4899), const Color(0xFFF97316)]),
+                                  _buildThemeOption(context, appState, 'glacier', 'Glacier', [const Color(0xFF0EA5E9), const Color(0xFF22D3EE)]),
+                                ],
+                              ),
+                              const Divider(height: 24),
+                              _buildActionItem(
+                                context: context,
+                                title: "App Language",
+                                subtitle: "Active translation: ${appState.language}",
+                                icon: Icons.translate_outlined,
+                                color: Theme.of(context).colorScheme.primary,
+                                onTap: () => _showLanguageSelector(context, appState),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
                       // Section: Audio & Feedback
                       const FadeInSlide(
                         delay: 100,
@@ -326,7 +383,77 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 24),
+
+                      // Section: Legal & Policies
+                      const FadeInSlide(
+                        delay: 600,
+                        child: _SectionHeader(title: "LEGAL & ABOUT"),
+                      ),
+                      const SizedBox(height: 10),
+                      FadeInSlide(
+                        delay: 650,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: AppTheme.glassBox(),
+                          child: Column(
+                            children: [
+                              _buildActionItem(
+                                context: context,
+                                title: "Privacy Policy",
+                                subtitle: "View data guidelines and sync replication policies",
+                                icon: Icons.privacy_tip_outlined,
+                                color: Theme.of(context).colorScheme.primary,
+                                onTap: () => _showLegalSheet(context, "Privacy Policy", _privacyPolicyContent),
+                              ),
+                              const Divider(height: 24),
+                              _buildActionItem(
+                                context: context,
+                                title: "Terms & Conditions",
+                                subtitle: "Review quantitative mock arena usage agreements",
+                                icon: Icons.description_outlined,
+                                color: Theme.of(context).colorScheme.secondary,
+                                onTap: () => _showLegalSheet(context, "Terms & Conditions", _termsContent),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Section: App Version Footer
+                      FadeInSlide(
+                        delay: 700,
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfaceLight.withOpacity(0.5),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: AppColors.border.withOpacity(0.3), width: 1),
+                                ),
+                                child: Text(
+                                  "SkillArena v1.2.4",
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.secondary,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                "Crafted with ♥ for premium career growth",
+                                style: TextStyle(fontSize: 10, color: AppColors.textMuted),
+                              ),
+                              const SizedBox(height: 40),
+                            ],
+                          ),
+                        ),
+                      ),
                     ]),
                   ),
                 ),
@@ -991,6 +1118,259 @@ class _SettingsScreenState extends State<SettingsScreen> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     );
   }
+
+  Widget _buildThemeOption(
+    BuildContext context,
+    AppState appState,
+    String id,
+    String name,
+    List<Color> palette,
+  ) {
+    final isSelected = appState.selectedTheme == id;
+    return InkWell(
+      onTap: () {
+        appState.setTheme(id);
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? palette[0].withOpacity(0.12) : AppColors.surfaceLight.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? palette[0] : AppColors.border,
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: palette[0],
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: palette[1],
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.white : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLanguageSelector(BuildContext context, AppState appState) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+            border: Border.all(color: AppColors.border, width: 1.5),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Select Language",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                "Choose your preferred interface language",
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 20),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    _buildLanguageItem(context, appState, "English", "🇺🇸"),
+                    _buildLanguageItem(context, appState, "Spanish", "🇪🇸"),
+                    _buildLanguageItem(context, appState, "Hindi", "🇮🇳"),
+                    _buildLanguageItem(context, appState, "French", "🇫🇷"),
+                    _buildLanguageItem(context, appState, "German", "🇩🇪"),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLanguageItem(BuildContext context, AppState appState, String lang, String flag) {
+    final isSelected = appState.language == lang;
+    final activeThemeColor = Theme.of(context).colorScheme.primary;
+    return InkWell(
+      onTap: () {
+        appState.setLanguage(lang);
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Language updated to $lang successfully!"),
+            backgroundColor: activeThemeColor,
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.border.withOpacity(0.5), width: 1)),
+        ),
+        child: Row(
+          children: [
+            Text(flag, style: const TextStyle(fontSize: 20)),
+            const SizedBox(width: 16),
+            Text(
+              lang,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.white : AppColors.textPrimary,
+              ),
+            ),
+            const Spacer(),
+            if (isSelected)
+              Icon(Icons.check_circle, color: activeThemeColor, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLegalSheet(BuildContext context, String title, String content) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+            border: Border.all(color: AppColors.border, width: 1.5),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const Divider(height: 24),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Text(
+                    content,
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.6),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 44),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("I Understand", style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  static const String _privacyPolicyContent =
+      "Last updated: June 15, 2026\n\n"
+      "Welcome to SkillArena! We are committed to protecting your personal data and your privacy. This Privacy Policy explains how we collect, use, and share information when you use our platform.\n\n"
+      "1. Information We Collect\n"
+      "- Account Information: When you create a mock account, sign up or log in via email, we store your username and credentials in our simulated cloud replica databases.\n"
+      "- Game & Test Results: We keep a persistent log of your quantitative aptitude quiz metrics, solved coding practices, memory training results, and achievements to compute your ratings.\n"
+      "- Device & Connection Data: We cache application options such as theme details, sound and vibration configurations local to your device using secure system storage.\n\n"
+      "2. How We Use Information\n"
+      "- To manage your account and maintain daily streak tracking and scoreboards.\n"
+      "- To provide premium simulated features including customized resume templates and real-time console log monitoring.\n"
+      "- To analyze performance trends, optimize quiz algorithms, and troubleshoot interface synchronization issues.\n\n"
+      "3. Cloud Sync & Replication\n"
+      "- If Live Cloud Sync is enabled, progress history is stored on Firestore nodes securely. When sync is deactivated, all analytics remain locally on your physical device storage.\n\n"
+      "4. Security Controls\n"
+      "- You can lock access to your profiles utilizing a 4-digit security code (MPIN) that is encrypted and stored locally.\n\n"
+      "5. Contact Us\n"
+      "For any inquiries regarding data protection policies or compliance queries, please drop an email at privacy@skillarena.com.";
+
+  static const String _termsContent =
+      "Last updated: June 15, 2026\n\n"
+      "Please read these Terms and Conditions carefully before using the SkillArena platform.\n\n"
+      "1. Agreement to Terms\n"
+      "By accessing or using SkillArena, you agree to be bound by these Terms. If you disagree with any part of the terms, you may not access the service.\n\n"
+      "2. License and Intellectual Property\n"
+      "- SkillArena grant you a limited, non-exclusive, non-transferable, revocable license to access practice arenas and tools for career training and evaluation.\n"
+      "- All visual branding, quantitative questions, source code layouts, achievements assets, and sound designs remain the exclusive property of SkillArena.\n\n"
+      "3. Practice Arena Rules\n"
+      "- Users must participate in mock tests, quizzes, and resume creation fairly. Cheat tools, script injections, or replication attempts are strictly forbidden.\n"
+      "- Multiplayer duels (e.g. Tic Tac Toe and Ludo) require cooperative behavior. Toxic communication, queue dodging, or spamming simulated databases is prohibited.\n\n"
+      "4. Simulated Premium Services\n"
+      "- Any virtual coins, badges, or ratings hold zero monetary value. Purchases made on the platform are simulated and strictly for gaming interface test purposes.\n\n"
+      "5. Limitation of Liability\n"
+      "SkillArena and its developers are not responsible for any career decisions, external job match failures, or data losses resulting from cache clearance.\n\n"
+      "6. Governing Law\n"
+      "These terms shall be governed and construed in accordance with the regulations of the jurisdiction of operations, without regard to conflicts of law provisions.";
 }
 
 class _SectionHeader extends StatelessWidget {

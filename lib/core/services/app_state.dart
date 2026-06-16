@@ -52,6 +52,8 @@ class AppState extends ChangeNotifier {
   String _adFrequency = 'Standard';
   bool _mpinEnabled = false;
   String _mpinValue = '';
+  bool _isDarkMode = true;
+  String _language = 'English';
 
   // Getters
   bool get soundEffectsEnabled => _soundEffectsEnabled;
@@ -62,6 +64,8 @@ class AppState extends ChangeNotifier {
   String get adFrequency => _adFrequency;
   bool get mpinEnabled => _mpinEnabled;
   String get mpinValue => _mpinValue;
+  bool get isDarkMode => _isDarkMode;
+  String get language => _language;
 
   // Logs for visual Firebase DB simulation
   final List<String> _dbSyncLogs = [];
@@ -133,6 +137,9 @@ class AppState extends ChangeNotifier {
     _adFrequency = _prefs.getString('adFrequency') ?? 'Standard';
     _mpinEnabled = _prefs.getBool('mpinEnabled') ?? false;
     _mpinValue = _prefs.getString('mpinValue') ?? '';
+    _isDarkMode = _prefs.getBool('isDarkMode') ?? true;
+    AppColors.isDarkMode = _isDarkMode;
+    _language = _prefs.getString('language') ?? 'English';
 
     _completedQuizCount = _prefs.getInt('completedQuizCount') ?? 8;
     _totalAnswersCorrect = _prefs.getInt('totalAnswersCorrect') ?? 32;
@@ -547,15 +554,16 @@ class AppState extends ChangeNotifier {
   Future<void> buyPremium() async {
     _isPremium = true;
     await _prefs.setBool('isPremium', true);
-    _logDbSync('Premium subscription purchased successfully via simulated gateway. Path `/premium_users/$_username`: ACTIVE');
+    _logDbSync('Premium subscription purchased successfully via simulated gateway. Path `/users/$_uid/profile/data/isPremium`: true');
     unlockBadge('VIP Pass');
+    _syncWithFirebase();
     notifyListeners();
   }
 
   Future<void> cancelPremium() async {
     _isPremium = false;
     await _prefs.setBool('isPremium', false);
-    _logDbSync('Premium subscription cancelled. Returning to free membership.');
+    _logDbSync('Premium subscription cancelled. Returning to free membership. Path `/users/$_uid/profile/data/isPremium`: false');
     _syncWithFirebase();
     notifyListeners();
   }
@@ -565,6 +573,23 @@ class AppState extends ChangeNotifier {
     AppColors.activeTheme = themeName;
     await _prefs.setString('selectedTheme', themeName);
     _logDbSync('Theme changed to $themeName.');
+    notifyListeners();
+  }
+
+  Future<void> toggleDarkMode(bool value) async {
+    _isDarkMode = value;
+    AppColors.isDarkMode = value;
+    await _prefs.setBool('isDarkMode', value);
+    _logDbSync('Dark mode toggled: $value.');
+    _syncSettingsWithFirebase();
+    notifyListeners();
+  }
+
+  Future<void> setLanguage(String value) async {
+    _language = value;
+    await _prefs.setString('language', value);
+    _logDbSync('Language changed to $value.');
+    _syncSettingsWithFirebase();
     notifyListeners();
   }
 
@@ -768,6 +793,9 @@ class AppState extends ChangeNotifier {
         _adFrequency = settings['adFrequency'] ?? _adFrequency;
         _mpinEnabled = settings['mpinEnabled'] ?? _mpinEnabled;
         _mpinValue = settings['mpinValue'] ?? _mpinValue;
+        _isDarkMode = settings['isDarkMode'] ?? _isDarkMode;
+        AppColors.isDarkMode = _isDarkMode;
+        _language = settings['language'] ?? _language;
         
         await _prefs.setBool('soundEffectsEnabled', _soundEffectsEnabled);
         await _prefs.setBool('hapticsEnabled', _hapticsEnabled);
@@ -777,6 +805,8 @@ class AppState extends ChangeNotifier {
         await _prefs.setString('adFrequency', _adFrequency);
         await _prefs.setBool('mpinEnabled', _mpinEnabled);
         await _prefs.setString('mpinValue', _mpinValue);
+        await _prefs.setBool('isDarkMode', _isDarkMode);
+        await _prefs.setString('language', _language);
       }
     }
     
@@ -906,6 +936,8 @@ class AppState extends ChangeNotifier {
         'adFrequency': _adFrequency,
         'mpinEnabled': _mpinEnabled,
         'mpinValue': _mpinValue,
+        'isDarkMode': _isDarkMode,
+        'language': _language,
       });
     }
   }

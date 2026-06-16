@@ -135,35 +135,7 @@ class ProfileTab extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Theme Switcher Section
-          const Text("Visual Interface Theme", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: AppTheme.glassBox(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Choose your arena styling theme:",
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 14),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  alignment: WrapAlignment.spaceEvenly,
-                  children: [
-                    _buildThemeOption(context, appState, 'cyberpunk', 'Cyberpunk', [const Color(0xFF7C3AED), const Color(0xFF06B6D4)]),
-                    _buildThemeOption(context, appState, 'emerald', 'Forest', [const Color(0xFF10B981), const Color(0xFF34D399)]),
-                    _buildThemeOption(context, appState, 'sunset', 'Synthwave', [const Color(0xFFEC4899), const Color(0xFFF97316)]),
-                    _buildThemeOption(context, appState, 'glacier', 'Glacier', [const Color(0xFF0EA5E9), const Color(0xFF22D3EE)]),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
+
 
           // Persistent Activity History Card
           Container(
@@ -313,64 +285,5 @@ class ProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _buildThemeOption(
-    BuildContext context,
-    AppState appState,
-    String id,
-    String name,
-    List<Color> palette,
-  ) {
-    final isSelected = appState.selectedTheme == id;
-    return InkWell(
-      onTap: () {
-        appState.setTheme(id);
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? palette[0].withOpacity(0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? palette[0] : AppColors.border,
-            width: 1.5,
-          ),
-        ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: palette[0],
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Container(
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: palette[1],
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              name,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? Colors.white : AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 }
