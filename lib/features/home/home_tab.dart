@@ -35,7 +35,7 @@ class HomeTab extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -203,7 +203,7 @@ class HomeTab extends StatelessWidget {
                       children: [
                         Text(
                           appState.username,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         ),
                         if (appState.isPremium) ...[
                           const SizedBox(width: 6),
@@ -356,7 +356,7 @@ class HomeTab extends StatelessWidget {
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -455,33 +455,41 @@ class HomeTab extends StatelessWidget {
 
   Widget _buildPremiumCTA(BuildContext context, AppState appState) {
     if (appState.isPremium) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(18),
-        decoration: AppTheme.glassBox(
-          color: AppColors.surface,
-          border: Border.all(color: AppColors.accentGreen.withOpacity(0.5)),
-        ),
-        child: const Row(
-          children: [
-            Icon(Icons.verified, color: AppColors.accentGreen, size: 28),
-            SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Premium Active",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  Text(
-                    "You have unlimited hints and access to all company packs.",
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                  ),
-                ],
+      return InkWell(
+        onTap: () {
+          Navigator.of(context).pushNamed("/premium");
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(18),
+          decoration: AppTheme.glassBox(
+            color: AppColors.surface,
+            border: Border.all(color: AppColors.accentGreen.withOpacity(0.5)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.verified, color: AppColors.accentGreen, size: 28),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Premium Active",
+                      style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    Text(
+                      "Manage subscription, renewal details, or cancel.",
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 12),
+              Icon(Icons.arrow_forward_ios, color: AppColors.textSecondary.withOpacity(0.8), size: 16),
+            ],
+          ),
         ),
       );
     }
@@ -515,7 +523,7 @@ class HomeTab extends StatelessWidget {
                     children: [
                       const Text(
                         "💎 Go Premium",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -703,7 +711,7 @@ class HomeTab extends StatelessWidget {
             child: Text(
               title,
               style: TextStyle(
-                color: completed ? AppColors.textMuted : Colors.white,
+                color: completed ? AppColors.textMuted : AppColors.textPrimary,
                 decoration: completed ? TextDecoration.lineThrough : null,
                 fontSize: 14,
               ),

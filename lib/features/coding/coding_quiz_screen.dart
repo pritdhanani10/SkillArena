@@ -202,7 +202,7 @@ class _CodingQuizScreenState extends State<CodingQuizScreen> {
               const SizedBox(height: 6),
               Text(
                 problem.text,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white, height: 1.35),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary, height: 1.35),
               ),
             ],
           ),
@@ -217,14 +217,14 @@ class _CodingQuizScreenState extends State<CodingQuizScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 20),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF070913),
+              color: context.colors.surfaceLight,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border, width: 1.5),
+              border: Border.all(color: context.colors.border, width: 1.5),
             ),
             child: SingleChildScrollView(
               child: RichText(
                 text: TextSpan(
-                  style: const TextStyle(fontFamily: 'Courier New', fontSize: 13, height: 1.4, color: Colors.white),
+                  style: TextStyle(fontFamily: 'Courier New', fontSize: 13, height: 1.4, color: context.colors.textPrimary),
                   children: _parseCodeHighlights(problem.codeSnippet),
                 ),
               ),
@@ -264,7 +264,7 @@ class _CodingQuizScreenState extends State<CodingQuizScreen> {
                     ),
                     child: Text(
                       "${String.fromCharCode(65 + index)}.   ${problem.options[index]}",
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
                     ),
                   ),
                 ),
@@ -279,9 +279,9 @@ class _CodingQuizScreenState extends State<CodingQuizScreen> {
           padding: const EdgeInsets.all(14),
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F111A),
+            color: context.colors.surfaceLight,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white12),
+            border: Border.all(color: context.colors.border),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

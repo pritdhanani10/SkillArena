@@ -36,7 +36,7 @@ class _AptitudeMenuScreenState extends State<AptitudeMenuScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -71,12 +71,12 @@ class _AptitudeMenuScreenState extends State<AptitudeMenuScreen> {
                           children: [
                             const Text(
                               "Aptitude Workout",
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                             ),
                             const SizedBox(height: 4),
-                            Text(
+                            const Text(
                               "Train quantitative, logical, and verbal skills. Earn +20 XP and +10 Coins per complete.",
-                              style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.75)),
+                              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                             ),
                           ],
                         ),
@@ -87,7 +87,7 @@ class _AptitudeMenuScreenState extends State<AptitudeMenuScreen> {
                 const SizedBox(height: 24),
 
                 // Domain Tabs Selector
-                const Text("1. Select Domain", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                const Text("1. Select Domain", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                 const SizedBox(height: 10),
                 Row(
                   children: domainTopics.keys.map((domain) {
@@ -127,7 +127,7 @@ class _AptitudeMenuScreenState extends State<AptitudeMenuScreen> {
                 const SizedBox(height: 24),
 
                 // Topic List Grid
-                const Text("2. Select Topic", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                const Text("2. Select Topic", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 8,
@@ -160,7 +160,7 @@ class _AptitudeMenuScreenState extends State<AptitudeMenuScreen> {
                 const SizedBox(height: 24),
 
                 // Mode Selection
-                const Text("3. Select Mode", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                const Text("3. Select Mode", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                 const SizedBox(height: 10),
                 ListView(
                   shrinkWrap: true,
@@ -271,9 +271,9 @@ class _AptitudeMenuScreenState extends State<AptitudeMenuScreen> {
         ),
         title: Text(
           title,
-          style: TextStyle(
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
-            color: isSelected ? Colors.white : AppColors.textPrimary,
+            color: AppColors.textPrimary,
           ),
         ),
         subtitle: Text(

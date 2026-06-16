@@ -60,7 +60,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   backgroundColor: Colors.transparent,
                   elevation: 0,
                   leading: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                    icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   flexibleSpace: FlexibleSpaceBar(
@@ -70,7 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -107,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               const Divider(height: 24),
                               const Text(
                                 "Accent Styling Palette",
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                               ),
                               const SizedBox(height: 10),
                               GridView.count(
@@ -139,9 +139,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       const SizedBox(height: 24),
 
+                      // Section: Membership & Billing
+                      const FadeInSlide(
+                        delay: 90,
+                        child: _SectionHeader(title: "MEMBERSHIP & BILLING"),
+                      ),
+                      const SizedBox(height: 10),
+                      FadeInSlide(
+                        delay: 100,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: AppTheme.glassBox(
+                            border: appState.isPremium 
+                                ? Border.all(color: AppColors.secondary.withOpacity(0.4))
+                                : null,
+                          ),
+                          child: _buildActionItem(
+                            context: context,
+                            title: appState.isPremium ? "Active Premium Plan" : "Upgrade to Premium",
+                            subtitle: appState.isPremium 
+                                ? "Manage your subscription, renewal date, or cancel" 
+                                : "Unlock all placement preparation packages, ad-free experience",
+                            icon: appState.isPremium ? Icons.verified : Icons.workspace_premium_outlined,
+                            color: appState.isPremium ? AppColors.secondary : Theme.of(context).colorScheme.primary,
+                            onTap: () {
+                              Navigator.of(context).pushNamed("/premium");
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
                       // Section: Audio & Feedback
                       const FadeInSlide(
-                        delay: 100,
+                        delay: 110,
                         child: _SectionHeader(title: "AUDIO & HAPTICS"),
                       ),
                       const SizedBox(height: 10),
@@ -490,7 +521,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
               const SizedBox(height: 2),
               Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
             ],
@@ -534,7 +565,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
               const SizedBox(height: 2),
               Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
             ],
@@ -554,7 +585,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onChanged: onChanged,
               dropdownColor: AppColors.surface,
               icon: const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary, size: 18),
-              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -620,7 +651,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SizedBox(width: 10),
               Text(
                 "Reset Profile Stats?",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -663,10 +694,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text("Enter MPIN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text("Enter MPIN", style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -677,7 +708,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 16),
             const Text(
               "Settings Locked",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -736,26 +767,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       if (index == 9) {
                         // Left bottom: Exit/Cancel
                         return _buildKeypadButton(
-                          child: const Icon(Icons.close, color: Colors.white54),
+                          child: const Icon(Icons.close, color: AppColors.textPrimary),
                           onTap: () => Navigator.of(context).pop(),
                         );
                       } else if (index == 10) {
                         // Bottom center: 0
                         return _buildKeypadButton(
-                          child: const Text("0", style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
+                          child: const Text("0", style: TextStyle(fontSize: 24, color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
                           onTap: () => _handleKeyPress("0", appState),
                         );
                       } else if (index == 11) {
                         // Right bottom: Backspace
                         return _buildKeypadButton(
-                          child: const Icon(Icons.backspace_outlined, color: Colors.white),
+                          child: const Icon(Icons.backspace_outlined, color: AppColors.textPrimary),
                           onTap: _handleBackspace,
                         );
                       } else {
                         // Standard digits 1-9
                         final digit = (index + 1).toString();
                         return _buildKeypadButton(
-                          child: Text(digit, style: const TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
+                          child: Text(digit, style: const TextStyle(fontSize: 24, color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
                           onTap: () => _handleKeyPress(digit, appState),
                         );
                       }
@@ -850,7 +881,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Icon(Icons.lock_outline, color: AppColors.secondary),
               SizedBox(width: 10),
-              Text("Set Security MPIN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              Text("Set Security MPIN", style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
             ],
           ),
           content: Form(
@@ -868,7 +899,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   keyboardType: TextInputType.number,
                   obscureText: true,
                   maxLength: 4,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: AppColors.textPrimary),
                   decoration: _dialogInputDeco("Enter 4-Digit PIN"),
                   validator: (val) {
                     if (val == null || val.length != 4 || int.tryParse(val) == null) {
@@ -883,7 +914,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   keyboardType: TextInputType.number,
                   obscureText: true,
                   maxLength: 4,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: AppColors.textPrimary),
                   decoration: _dialogInputDeco("Confirm 4-Digit PIN"),
                   validator: (val) {
                     if (val != pinController.text) {
@@ -937,7 +968,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Icon(Icons.lock_open, color: AppColors.accentPink),
               SizedBox(width: 10),
-              Text("Disable MPIN Lock", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              Text("Disable MPIN Lock", style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
             ],
           ),
           content: Form(
@@ -955,7 +986,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   keyboardType: TextInputType.number,
                   obscureText: true,
                   maxLength: 4,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: AppColors.textPrimary),
                   decoration: _dialogInputDeco("Enter Current PIN"),
                   validator: (val) {
                     if (val != appState.mpinValue) {
@@ -1011,7 +1042,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Icon(Icons.edit_road_outlined, color: AppColors.secondary),
               SizedBox(width: 10),
-              Text("Change Security MPIN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              Text("Change Security MPIN", style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
             ],
           ),
           content: SingleChildScrollView(
@@ -1025,7 +1056,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     keyboardType: TextInputType.number,
                     obscureText: true,
                     maxLength: 4,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppColors.textPrimary),
                     decoration: _dialogInputDeco("Current MPIN"),
                     validator: (val) {
                       if (val != appState.mpinValue) {
@@ -1040,7 +1071,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     keyboardType: TextInputType.number,
                     obscureText: true,
                     maxLength: 4,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppColors.textPrimary),
                     decoration: _dialogInputDeco("New 4-Digit PIN"),
                     validator: (val) {
                       if (val == null || val.length != 4 || int.tryParse(val) == null) {
@@ -1055,7 +1086,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     keyboardType: TextInputType.number,
                     obscureText: true,
                     maxLength: 4,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppColors.textPrimary),
                     decoration: _dialogInputDeco("Confirm New PIN"),
                     validator: (val) {
                       if (val != newController.text) {
@@ -1176,7 +1207,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? Colors.white : AppColors.textSecondary,
+                color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
               ),
             ),
           ],
@@ -1206,7 +1237,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               const Text(
                 "Select Language",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
               ),
               const SizedBox(height: 4),
               const Text(
@@ -1263,7 +1294,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? Colors.white : AppColors.textPrimary,
+                color: isSelected ? Theme.of(context).colorScheme.primary : AppColors.textPrimary,
               ),
             ),
             const Spacer(),
@@ -1300,7 +1331,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close, color: AppColors.textSecondary),

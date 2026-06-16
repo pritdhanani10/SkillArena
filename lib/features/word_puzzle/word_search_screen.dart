@@ -151,9 +151,9 @@ class _WordSearchScreenState extends State<WordSearchScreen> {
                           height: 48,
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0F121E),
+                            color: context.colors.surfaceLight,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: _currentSelectionText.isNotEmpty ? AppColors.accentGreen : AppColors.border),
+                            border: Border.all(color: _currentSelectionText.isNotEmpty ? AppColors.accentGreen : context.colors.border),
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Row(
@@ -162,7 +162,7 @@ class _WordSearchScreenState extends State<WordSearchScreen> {
                               Text(
                                 _currentSelectionText.isNotEmpty ? _currentSelectionText : "Select letters...",
                                 style: TextStyle(
-                                  color: _currentSelectionText.isNotEmpty ? Colors.white : AppColors.textMuted,
+                                  color: _currentSelectionText.isNotEmpty ? context.colors.textPrimary : context.colors.textMuted,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                   letterSpacing: 1.5,
@@ -227,7 +227,7 @@ class _WordSearchScreenState extends State<WordSearchScreen> {
                                   child: Text(
                                     char,
                                     style: TextStyle(
-                                      color: isSelected ? Colors.white : AppColors.textPrimary,
+                                      color: context.colors.textPrimary,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
                                     ),
@@ -251,9 +251,9 @@ class _WordSearchScreenState extends State<WordSearchScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             "Target Words Checklist",
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: context.colors.textPrimary),
                           ),
                           const SizedBox(height: 10),
                           Wrap(

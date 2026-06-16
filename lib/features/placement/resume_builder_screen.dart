@@ -202,33 +202,33 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
           children: [
             const Text(
               "Enter Profile Details",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 16),
             TextFormField(
               decoration: _buildInputDeco("Full Name", Icons.person),
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AppColors.textPrimary),
               validator: (val) => val == null || val.isEmpty ? "Name is required" : null,
               onSaved: (val) => _name = val ?? "",
             ),
             const SizedBox(height: 12),
             TextFormField(
               decoration: _buildInputDeco("Target Professional Role (e.g. Software Engineer)", Icons.badge),
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AppColors.textPrimary),
               validator: (val) => val == null || val.isEmpty ? "Role is required" : null,
               onSaved: (val) => _role = val ?? "",
             ),
             const SizedBox(height: 12),
             TextFormField(
               decoration: _buildInputDeco("Email Address", Icons.email),
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AppColors.textPrimary),
               validator: (val) => val == null || !val.contains('@') ? "Valid email is required" : null,
               onSaved: (val) => _email = val ?? "",
             ),
             const SizedBox(height: 12),
             TextFormField(
               decoration: _buildInputDeco("Skills (e.g. Flutter, Dart, Java, SQL)", Icons.psychology),
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AppColors.textPrimary),
               validator: (val) => val == null || val.isEmpty ? "Skills are required" : null,
               onSaved: (val) => _skills = val ?? "",
             ),
@@ -238,7 +238,7 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
               children: [
                 const Text(
                   "Key Projects",
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 15),
                 ),
                 TextButton.icon(
                   onPressed: _addProjectField,
@@ -277,14 +277,14 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
                     TextFormField(
                       controller: pController['title'],
                       decoration: _buildInputDeco("Project Title", Icons.folder),
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: AppColors.textPrimary),
                       validator: (val) => val == null || val.isEmpty ? "Project title is required" : null,
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: pController['desc'],
                       decoration: _buildInputDeco("Project Description / Achievements", Icons.description),
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: AppColors.textPrimary),
                       maxLines: 2,
                       validator: (val) => val == null || val.isEmpty ? "Project description is required" : null,
                     ),
@@ -299,7 +299,7 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
               children: [
                 const Text(
                   "Work/Internship Experience",
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 15),
                 ),
                 TextButton.icon(
                   onPressed: _addExperienceField,
@@ -319,7 +319,7 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
                       child: TextFormField(
                         controller: eController,
                         decoration: _buildInputDeco("Experience #${index + 1}", Icons.work),
-                        style: const TextStyle(color: Colors.white),
+                        style: const TextStyle(color: AppColors.textPrimary),
                         validator: (val) => val == null || val.isEmpty ? "Experience entry is required" : null,
                       ),
                     ),
@@ -338,12 +338,12 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
             const SizedBox(height: 16),
             TextFormField(
               decoration: _buildInputDeco("Education Credentials", Icons.school),
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AppColors.textPrimary),
               validator: (val) => val == null || val.isEmpty ? "Education is required" : null,
               onSaved: (val) => _education = val ?? "",
             ),
             const SizedBox(height: 20),
-            const Text("Choose Visual Template", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            const Text("Choose Visual Template", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               dropdownColor: AppColors.surface,
@@ -351,7 +351,7 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
               items: ["Default Slate", "Emerald Glow", "Sunset Neon"].map((t) {
                 return DropdownMenuItem(
                   value: t,
-                  child: Text(t, style: const TextStyle(color: Colors.white)),
+                  child: Text(t, style: const TextStyle(color: AppColors.textPrimary)),
                 );
               }).toList(),
               onChanged: (val) {
@@ -380,7 +380,7 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
     );
 
     final Widget previewPanel = Container(
-      color: Colors.black12,
+      color: context.colors.background.withOpacity(0.5),
       padding: const EdgeInsets.all(20),
       child: SingleChildScrollView(
         child: Column(
@@ -417,7 +417,7 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text("Generated Resumes Archive", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                const Text("Generated Resumes Archive", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 Expanded(
                   child: ListView.builder(
@@ -490,7 +490,7 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
             elevation: 0,
             bottom: const TabBar(
               indicatorColor: AppColors.secondary,
-              labelColor: Colors.white,
+              labelColor: AppColors.textPrimary,
               unselectedLabelColor: AppColors.textMuted,
               tabs: [
                 Tab(text: "Edit Details"),
@@ -544,7 +544,7 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F111E),
+        color: AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: accentColor.withOpacity(0.5), width: 1.5),
       ),
@@ -553,7 +553,7 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
         children: [
           Text(
             data['name'] ?? "Name",
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
           ),
           Text(
             data['role'] ?? "Developer",
@@ -565,12 +565,12 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
           ),
           const Divider(height: 20, color: AppColors.border),
           
-          const Text("TECHNICAL SKILLS", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5)),
+          const Text("TECHNICAL SKILLS", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary, letterSpacing: 0.5)),
           const SizedBox(height: 4),
           Text(data['skills'] ?? "", style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
           const SizedBox(height: 12),
 
-          const Text("KEY PROJECTS", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5)),
+          const Text("KEY PROJECTS", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary, letterSpacing: 0.5)),
           const SizedBox(height: 4),
           if (data['projects'] != null && data['projects'] is List)
             ...((data['projects'] as List).map((p) {
@@ -580,19 +580,19 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(proj['title'] ?? "", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                    Text(proj['title'] ?? "", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                     Text(proj['desc'] ?? "", style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                   ],
                 ),
               );
             }).toList())
           else ...[
-            Text(data['projectTitle'] ?? "", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text(data['projectTitle'] ?? "", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
             Text(data['projectDesc'] ?? "", style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
           ],
           const SizedBox(height: 12),
 
-          const Text("WORK EXPERIENCE", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5)),
+          const Text("WORK EXPERIENCE", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary, letterSpacing: 0.5)),
           const SizedBox(height: 4),
           if (data['experiences'] != null && data['experiences'] is List)
             ...((data['experiences'] as List).map((exp) {
@@ -605,7 +605,7 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
             Text(data['experience'] ?? "", style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
           const SizedBox(height: 12),
 
-          const Text("EDUCATION", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5)),
+          const Text("EDUCATION", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary, letterSpacing: 0.5)),
           const SizedBox(height: 4),
           Text(data['education'] ?? "", style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
         ],

@@ -179,7 +179,7 @@ class WelcomeScreen extends StatelessWidget {
             minimumSize: const Size(double.infinity, 54),
             side: const BorderSide(color: AppColors.border, width: 1.5),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            foregroundColor: Colors.white,
+            foregroundColor: AppColors.textPrimary,
           ),
           onPressed: () {
             Navigator.of(context).pushNamed(AppRoutes.auth);
@@ -251,7 +251,11 @@ class WelcomeScreen extends StatelessWidget {
               children: [
                 Positioned.fill(
                   child: CustomPaint(
-                    painter: WelcomeGraphicsPainter(),
+                    painter: WelcomeGraphicsPainter(
+                      bgStart: context.colors.background,
+                      bgEnd: context.colors.surfaceLight,
+                      gridColor: context.colors.border.withOpacity(0.4),
+                    ),
                   ),
                 ),
                 Center(
@@ -319,12 +323,22 @@ class WelcomeScreen extends StatelessWidget {
 }
 
 class WelcomeGraphicsPainter extends CustomPainter {
+  final Color bgStart;
+  final Color bgEnd;
+  final Color gridColor;
+
+  WelcomeGraphicsPainter({
+    required this.bgStart,
+    required this.bgEnd,
+    required this.gridColor,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
     // Fill background gradient
     final bgPaint = Paint()
-      ..shader = const LinearGradient(
-        colors: [Color(0xFF0F121F), Color(0xFF191E36)],
+      ..shader = LinearGradient(
+        colors: [bgStart, bgEnd],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
@@ -340,7 +354,7 @@ class WelcomeGraphicsPainter extends CustomPainter {
 
     // Paint a cyber grid floor
     final gridPaint = Paint()
-      ..color = AppColors.border.withOpacity(0.4)
+      ..color = gridColor
       ..strokeWidth = 1.0;
     
     double startY = size.height * 0.5;
@@ -489,7 +503,12 @@ class _AnimatedWelcomeBannerState extends State<AnimatedWelcomeBanner>
                 Positioned.fill(
                   child: RepaintBoundary(
                     child: CustomPaint(
-                      painter: BannerBackgroundPainter(_controller.value),
+                      painter: BannerBackgroundPainter(
+                        _controller.value,
+                        bgStart: context.colors.background,
+                        bgEnd: context.colors.surfaceLight,
+                        gridColor: context.colors.border.withOpacity(0.12),
+                      ),
                     ),
                   ),
                 ),
@@ -559,7 +578,7 @@ class _AnimatedWelcomeBannerState extends State<AnimatedWelcomeBanner>
                 Text(
                   item.label,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.95),
+                    color: AppColors.textPrimary.withOpacity(0.95),
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.5,
@@ -592,21 +611,29 @@ class _FloatingIconItem {
 
 class BannerBackgroundPainter extends CustomPainter {
   final double progress;
-  BannerBackgroundPainter(this.progress);
+  final Color bgStart;
+  final Color bgEnd;
+  final Color gridColor;
+
+  BannerBackgroundPainter(this.progress, {
+    required this.bgStart,
+    required this.bgEnd,
+    required this.gridColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     // Fill deep dark background
     final bgPaint = Paint()
-      ..shader = const LinearGradient(
-        colors: [Color(0xFF0F121F), Color(0xFF13172D)],
+      ..shader = LinearGradient(
+        colors: [bgStart, bgEnd],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
 
     final paint = Paint()
-      ..color = AppColors.border.withOpacity(0.12)
+      ..color = gridColor
       ..strokeWidth = 1.0;
 
     // Draw vertical grid lines

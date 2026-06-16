@@ -39,7 +39,7 @@ class _LeaderboardTabState extends State<LeaderboardTab> with SingleTickerProvid
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.secondary,
-          labelColor: Colors.white,
+          labelColor: AppColors.textPrimary,
           unselectedLabelColor: AppColors.textMuted,
           tabs: const [
             Tab(text: "Global"),
@@ -147,7 +147,7 @@ class _LeaderboardTabState extends State<LeaderboardTab> with SingleTickerProvid
                               user['name'],
                               style: TextStyle(
                                 fontWeight: isPlayer ? FontWeight.bold : FontWeight.normal,
-                                color: Colors.white,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ),
@@ -234,7 +234,7 @@ class _LeaderboardTabState extends State<LeaderboardTab> with SingleTickerProvid
           style: TextStyle(
             fontSize: 12, 
             fontWeight: isPlayer ? FontWeight.bold : FontWeight.normal,
-            color: Colors.white,
+            color: AppColors.textPrimary,
           ),
         ),
         Text("${user['xp']} XP", style: TextStyle(fontSize: 10, color: blockColor, fontWeight: FontWeight.bold)),

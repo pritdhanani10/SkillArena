@@ -69,11 +69,112 @@ class AppColors {
   );
 }
 
-class AppTheme {
-  static ThemeData get darkTheme {
-    final activeTheme = AppColors.activeTheme;
-    final isDark = AppColors.isDarkMode;
+class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
+  final Color primary;
+  final Color secondary;
+  final Color background;
+  final Color surface;
+  final Color surfaceLight;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textMuted;
+  final Color border;
+  final Color borderLight;
+  final Color success;
+  final Color error;
+  final Color warning;
+  final Color accentOrange;
+  final Color accentPink;
+  final Color accentYellow;
 
+  AppColorsExtension({
+    required this.primary,
+    required this.secondary,
+    required this.background,
+    required this.surface,
+    required this.surfaceLight,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textMuted,
+    required this.border,
+    required this.borderLight,
+    required this.success,
+    required this.error,
+    required this.warning,
+    required this.accentOrange,
+    required this.accentPink,
+    required this.accentYellow,
+  });
+
+  @override
+  AppColorsExtension copyWith({
+    Color? primary,
+    Color? secondary,
+    Color? background,
+    Color? surface,
+    Color? surfaceLight,
+    Color? textPrimary,
+    Color? textSecondary,
+    Color? textMuted,
+    Color? border,
+    Color? borderLight,
+    Color? success,
+    Color? error,
+    Color? warning,
+    Color? accentOrange,
+    Color? accentPink,
+    Color? accentYellow,
+  }) {
+    return AppColorsExtension(
+      primary: primary ?? this.primary,
+      secondary: secondary ?? this.secondary,
+      background: background ?? this.background,
+      surface: surface ?? this.surface,
+      surfaceLight: surfaceLight ?? this.surfaceLight,
+      textPrimary: textPrimary ?? this.textPrimary,
+      textSecondary: textSecondary ?? this.textSecondary,
+      textMuted: textMuted ?? this.textMuted,
+      border: border ?? this.border,
+      borderLight: borderLight ?? this.borderLight,
+      success: success ?? this.success,
+      error: error ?? this.error,
+      warning: warning ?? this.warning,
+      accentOrange: accentOrange ?? this.accentOrange,
+      accentPink: accentPink ?? this.accentPink,
+      accentYellow: accentYellow ?? this.accentYellow,
+    );
+  }
+
+  @override
+  AppColorsExtension lerp(ThemeExtension<AppColorsExtension>? other, double t) {
+    if (other is! AppColorsExtension) return this;
+    return AppColorsExtension(
+      primary: Color.lerp(primary, other.primary, t)!,
+      secondary: Color.lerp(secondary, other.secondary, t)!,
+      background: Color.lerp(background, other.background, t)!,
+      surface: Color.lerp(surface, other.surface, t)!,
+      surfaceLight: Color.lerp(surfaceLight, other.surfaceLight, t)!,
+      textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
+      textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
+      textMuted: Color.lerp(textMuted, other.textMuted, t)!,
+      border: Color.lerp(border, other.border, t)!,
+      borderLight: Color.lerp(borderLight, other.borderLight, t)!,
+      success: Color.lerp(success, other.success, t)!,
+      error: Color.lerp(error, other.error, t)!,
+      warning: Color.lerp(warning, other.warning, t)!,
+      accentOrange: Color.lerp(accentOrange, other.accentOrange, t)!,
+      accentPink: Color.lerp(accentPink, other.accentPink, t)!,
+      accentYellow: Color.lerp(accentYellow, other.accentYellow, t)!,
+    );
+  }
+}
+
+extension AppThemeContext on BuildContext {
+  AppColorsExtension get colors => Theme.of(this).extension<AppColorsExtension>()!;
+}
+
+class AppTheme {
+  static AppColorsExtension colorsFor(String activeTheme, bool isDark) {
     Color primaryColor = const Color(0xFF7C3AED);
     Color secondaryColor = const Color(0xFF06B6D4);
     Color scaffoldBg = isDark ? const Color(0xFF090A0F) : const Color(0xFFF9FAFB);
@@ -102,28 +203,55 @@ class AppTheme {
 
     final textCol = isDark ? const Color(0xFFF3F4F6) : const Color(0xFF111827);
     final textSecCol = isDark ? const Color(0xFF9CA3AF) : const Color(0xFF4B5563);
+    final textMutCol = isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF);
+    final borderLightCol = isDark ? const Color(0xFF374151) : const Color(0xFFD1D5DB);
+    final surfaceLightCol = isDark ? const Color(0xFF1E2235) : const Color(0xFFF3F4F6);
+
+    return AppColorsExtension(
+      primary: primaryColor,
+      secondary: secondaryColor,
+      background: scaffoldBg,
+      surface: surfaceColor,
+      surfaceLight: surfaceLightCol,
+      textPrimary: textCol,
+      textSecondary: textSecCol,
+      textMuted: textMutCol,
+      border: borderCol,
+      borderLight: borderLightCol,
+      success: const Color(0xFF10B981),
+      error: const Color(0xFFEC4899),
+      warning: const Color(0xFFF59E0B),
+      accentOrange: const Color(0xFFF97316),
+      accentPink: const Color(0xFFEC4899),
+      accentYellow: const Color(0xFFF59E0B),
+    );
+  }
+
+  static ThemeData theme(bool isDark) {
+    final activeTheme = AppColors.activeTheme;
+    final colors = colorsFor(activeTheme, isDark);
 
     return ThemeData(
       useMaterial3: true,
       brightness: isDark ? Brightness.dark : Brightness.light,
-      scaffoldBackgroundColor: scaffoldBg,
+      scaffoldBackgroundColor: colors.background,
       colorScheme: isDark
           ? ColorScheme.dark(
-              primary: primaryColor,
-              secondary: secondaryColor,
-              surface: surfaceColor,
-              onSurface: textCol,
-              error: const Color(0xFFEC4899),
+              primary: colors.primary,
+              secondary: colors.secondary,
+              surface: colors.surface,
+              onSurface: colors.textPrimary,
+              error: colors.error,
             )
           : ColorScheme.light(
-              primary: primaryColor,
-              secondary: secondaryColor,
-              surface: surfaceColor,
-              onSurface: textCol,
-              error: const Color(0xFFEC4899),
+              primary: colors.primary,
+              secondary: colors.secondary,
+              surface: colors.surface,
+              onSurface: colors.textPrimary,
+              error: colors.error,
             ),
       dividerTheme: DividerThemeData(
-        color: borderCol,
+        color: colors.border,
         thickness: 1,
       ),
       textTheme: GoogleFonts.outfitTextTheme(
@@ -132,40 +260,44 @@ class AppTheme {
         displayLarge: GoogleFonts.outfit(
           fontSize: 32,
           fontWeight: FontWeight.bold,
-          color: textCol,
+          color: colors.textPrimary,
           letterSpacing: -0.5,
         ),
         titleLarge: GoogleFonts.outfit(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          color: textCol,
+          color: colors.textPrimary,
         ),
         bodyLarge: GoogleFonts.outfit(
           fontSize: 16,
-          color: textCol,
+          color: colors.textPrimary,
         ),
         bodyMedium: GoogleFonts.outfit(
           fontSize: 14,
-          color: textSecCol,
+          color: colors.textSecondary,
         ),
       ),
       cardTheme: CardThemeData(
-        color: surfaceColor,
+        color: colors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          side: BorderSide(color: borderCol, width: 1),
+          side: BorderSide(color: colors.border, width: 1),
           borderRadius: const BorderRadius.all(Radius.circular(16)),
         ),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: surfaceColor,
-        selectedItemColor: secondaryColor,
+        backgroundColor: colors.surface,
+        selectedItemColor: colors.secondary,
         unselectedItemColor: isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF),
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
+      extensions: [colors],
     );
   }
+
+  static ThemeData get darkTheme => theme(true);
+  static ThemeData get lightTheme => theme(false);
 
   // Dynamic Gradients based on theme
   static LinearGradient get primaryGradient {

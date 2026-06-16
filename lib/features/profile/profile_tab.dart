@@ -31,7 +31,7 @@ class ProfileTab extends StatelessWidget {
                 style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 26),
               ),
               IconButton(
-                icon: const Icon(Icons.settings, color: Colors.white, size: 24),
+                icon: const Icon(Icons.settings, color: AppColors.textPrimary, size: 24),
                 onPressed: () => Navigator.of(context).pushNamed("/settings"),
               ),
             ],
@@ -74,7 +74,7 @@ class ProfileTab extends StatelessWidget {
           const SizedBox(height: 24),
 
           // User Statistics: Accuracy Radial charts
-          const Text("Performance Metrics", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+          const Text("Performance Metrics", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -100,7 +100,7 @@ class ProfileTab extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Unlocked Badges
-          const Text("Achievements & Badges", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+          const Text("Achievements & Badges", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
           const SizedBox(height: 12),
           SizedBox(
             height: 90,
@@ -124,7 +124,7 @@ class ProfileTab extends StatelessWidget {
                         const SizedBox(height: 6),
                         Text(
                           badge,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         ),
                       ],
                     ),
@@ -156,7 +156,7 @@ class ProfileTab extends StatelessWidget {
                         SizedBox(width: 8),
                         Text(
                           "Activity History",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         ),
                       ],
                     ),
@@ -271,7 +271,7 @@ class ProfileTab extends StatelessWidget {
                     valueColor: AlwaysStoppedAnimation<Color>(color),
                   ),
                 ),
-                Text(displayValue, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text(displayValue, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
               ],
             ),
           ),

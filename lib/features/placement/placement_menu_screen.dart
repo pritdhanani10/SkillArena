@@ -33,13 +33,13 @@ class _PlacementMenuScreenState extends State<PlacementMenuScreen> with SingleTi
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
-          labelColor: Colors.white,
+          labelColor: AppColors.textPrimary,
           unselectedLabelColor: AppColors.textMuted,
           tabs: const [
             Tab(text: "Q&A & Notes"),
@@ -66,7 +66,7 @@ class _PlacementMenuScreenState extends State<PlacementMenuScreen> with SingleTi
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // HR questions list
-          const Text("HR Interview Questions", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+          const Text("HR Interview Questions", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
           const SizedBox(height: 10),
           _buildQuestionTile(
             q: "Tell me about yourself.",
@@ -79,7 +79,7 @@ class _PlacementMenuScreenState extends State<PlacementMenuScreen> with SingleTi
           const SizedBox(height: 24),
 
           // Technical Notes
-          const Text("Technical Core Notes", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+          const Text("Technical Core Notes", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
           const SizedBox(height: 10),
           _buildNoteCard(
             title: "DBMS: Acid Properties",
@@ -110,7 +110,7 @@ class _PlacementMenuScreenState extends State<PlacementMenuScreen> with SingleTi
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ExpansionTile(
-        title: Text(q, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+        title: Text(q, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary)),
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -222,7 +222,7 @@ class _PlacementMenuScreenState extends State<PlacementMenuScreen> with SingleTi
                 child: Icon(icon, size: 36, color: color),
               ),
               const SizedBox(height: 16),
-              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
               const SizedBox(height: 8),
               Text(
                 desc,
@@ -355,7 +355,7 @@ class _FlashCardsTabState extends State<FlashCardsTab> with SingleTickerProvider
                                 style: TextStyle(
                                   fontSize: _isFlipped ? 14 : 18, 
                                   fontWeight: _isFlipped ? FontWeight.normal : FontWeight.bold,
-                                  color: Colors.white,
+                                  color: AppColors.textPrimary,
                                   height: 1.45,
                                 ),
                               ),
@@ -394,8 +394,8 @@ class _FlashCardsTabState extends State<FlashCardsTab> with SingleTickerProvider
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 onPressed: _prevCard,
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                label: const Text("Previous", style: TextStyle(color: Colors.white)),
+                icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                label: const Text("Previous", style: TextStyle(color: AppColors.textPrimary)),
               ),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
@@ -403,8 +403,8 @@ class _FlashCardsTabState extends State<FlashCardsTab> with SingleTickerProvider
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 onPressed: _nextCard,
-                icon: const Icon(Icons.arrow_forward, color: Colors.white),
-                label: const Text("Next", style: TextStyle(color: Colors.white)),
+                icon: const Icon(Icons.arrow_forward, color: AppColors.textPrimary),
+                label: const Text("Next", style: TextStyle(color: AppColors.textPrimary)),
               ),
             ],
           )

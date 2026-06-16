@@ -28,7 +28,7 @@ class HistoryScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     const Text(
                       "No activity logged yet.",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textPrimary),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -86,7 +86,7 @@ class HistoryScreen extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 log['feature'] ?? 'Activity',
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 14),
                               ),
                             ),
                             Text(
@@ -213,7 +213,7 @@ class AttemptReviewScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     result,
-                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -226,7 +226,7 @@ class AttemptReviewScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            const Text("Questions Detail", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+            const Text("Questions Detail", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
 
             // Scrollable List of questions
@@ -290,7 +290,7 @@ class AttemptReviewScreen extends StatelessWidget {
                       // Question text
                       Text(
                         questionText,
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                       ),
                       const SizedBox(height: 12),
 
@@ -300,16 +300,16 @@ class AttemptReviewScreen extends StatelessWidget {
                           width: double.infinity,
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF070913),
+                            color: context.colors.surfaceLight,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(color: context.colors.border),
                           ),
                           child: Text(
                             codeSnippet,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Courier New', 
                               fontSize: 12, 
-                              color: Color(0xFF81A1C1)
+                              color: context.colors.textPrimary,
                             ),
                           ),
                         ),
@@ -352,7 +352,7 @@ class AttemptReviewScreen extends StatelessWidget {
                                 options[optIdx],
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: (isThisCorrect || isThisSelected) ? Colors.white : AppColors.textSecondary,
+                                  color: (isThisCorrect || isThisSelected) ? AppColors.textPrimary : AppColors.textSecondary,
                                   fontWeight: (isThisCorrect || isThisSelected) ? FontWeight.bold : FontWeight.normal,
                                 ),
                               ),

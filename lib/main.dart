@@ -30,7 +30,10 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: 'SkillArena',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.darkTheme,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: appState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            themeAnimationDuration: const Duration(milliseconds: 300),
             initialRoute: AppRoutes.splash,
             onGenerateRoute: AppRoutes.generateRoute,
           );
